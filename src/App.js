@@ -6,7 +6,9 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import MyJobs from './pages/MyJobs';
 import PostJob from './pages/PostJob';
-// import DeleteAccount from './pages/DeleteAccount';
+import Announcement from './pages/Announcement';
+import PostAnnouncement from './pages/PostAnnouncement';
+import ManageAccounts from './pages/ManageAccounts';
 
 function App() {
   return (
@@ -19,7 +21,6 @@ function App() {
 function MainApp() {
   const location = useLocation();
 
-  // Check if the current path is '/'; if not, show the sidebar
   const showSidebar = location.pathname !== '/';
 
   return (
@@ -34,7 +35,9 @@ function MainApp() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/jobs" element={<MyJobs />} />
           <Route path="/submit-job" element={<PostJob />} />
-          {/* <Route path="/delete-account" element={<DeleteAccount />} /> */}
+          <Route path="/announcement" element={<Announcement />} />
+          <Route path="/post-announcement" element={<PostAnnouncement />} />
+          <Route path="/manage-account" element={<ManageAccounts />} />
         </Routes>
       </div>
     </div>

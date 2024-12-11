@@ -1,15 +1,14 @@
-
 import React from 'react'
-import Jobs from "../components/TableJobs"
+import ManageAccountsTable from '../components/TableAccounts'
 
-const MyJobs = () => {
+const ManageAccounts = () => {
     return (
         <div className="h-screen flex flex-col bg-green-50 overflow-hidden corner-radius">
             <div className="flex-1 overflow-y-scroll ">
-                <Jobs />
+                <ManageAccountsTable />
             </div>
         </div>
     )
 }
 
-export default MyJobs
+export default ManageAccounts

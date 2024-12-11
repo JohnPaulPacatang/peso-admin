@@ -132,36 +132,6 @@ function PostJobForm() {
                 />
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-gray-600 mb-2" htmlFor="industry">
-                  Industry
-                </label>
-                <select
-                  id="industry"
-                  className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option>Technology</option>
-                  <option>Finance</option>
-                  <option>Education</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-gray-600 mb-2" htmlFor="english-fluency">
-                  English Fluency
-                </label>
-                <select
-                  id="english-fluency"
-                  className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option>Basic</option>
-                  <option>Intermediate</option>
-                  <option>Advanced</option>
-                </select>
-              </div>
-            </div>
           </div>
 
           {/* File Attachment */}

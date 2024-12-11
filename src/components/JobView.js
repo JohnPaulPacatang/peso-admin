@@ -56,10 +56,7 @@ const JobDashboard = () => {
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 p-4 lg:p-8">
-      {/* Empty Space */}
-      <div className="flex-1 hidden lg:block"></div>
-
+    <div className="flex flex-col lg:flex-row gap-8 p-6 sm:p-8 lg:p-14 ">
       {/* Job Views Component */}
       <div className="bg-white shadow-lg rounded-3xl p-10 w-full lg:w-1/2">
         <h2 className="text-xl font-semibold text-gray-700 mb-4">Job Views</h2>
@@ -119,7 +116,7 @@ const JobDashboard = () => {
       </div>
 
       {/* Posted Jobs Component */}
-      <div className="bg-white rounded-3xl p-6 w-full lg:w-1/2 shadow-md mr-8">
+      <div className="bg-white rounded-3xl p-6 w-full lg:w-1/2 shadow-md">
         <h2 className="text-lg font-semibold text-gray-700 mb-4">Posted Job</h2>
         <ul className="space-y-4">
           {jobs.map((job) => (

@@ -6,6 +6,8 @@ import {
   CiSquarePlus,
   CiGrid41,
   CiLogout,
+  CiBellOn,
+  CiBullhorn,
 } from "react-icons/ci";
 import Profile from '../assets/user.png';
 import mainLogo from '../assets/mainLogo.png';
@@ -25,14 +27,14 @@ const Sidebar = () => {
     if (isConfirmed) {
       // Add logout logic here (e.g., clearing session data)
       alert('Logged out successfully!');
-      window.location.href = '/'; // Redirect after logout
+      window.location.href = '/';
     }
   };
 
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className="w-full bg-white p-10 flex flex-col overflow-hidden">
+      <div className="w-full bg-white p-8 flex flex-col overflow-hidden">
         {/* Logo Section */}
         <div className="flex items-center justify-center p-4">
           <img className="w-auto h-16" src={mainLogo} alt="logo" />
@@ -45,7 +47,7 @@ const Sidebar = () => {
             alt="Profile"
             className="rounded-full h-16 w-16 object-cover"
           />
-          <span className="text-lg mt-2">Christian Atis</span>
+          <span className="text-lg mt-2">Administrator</span>
         </div>
 
         {/* Navigation Links */}
@@ -78,7 +80,25 @@ const Sidebar = () => {
             Post a Job
           </Link>
           <Link
-            to="/delete-account"
+            to="/announcement"
+            className={`flex items-center p-2 text-gray-700 ${isActive(
+              '/announcement'
+            )} rounded-lg transition duration-300`}
+          >
+            <CiBellOn className="mr-2 text-3xl" />
+            Announcement
+          </Link>
+          <Link
+            to="/post-announcement"
+            className={`flex items-center p-2 text-gray-700 ${isActive(
+              '/post-announcement'
+            )} rounded-lg transition duration-300`}
+          >
+            <CiBullhorn className="mr-2 text-3xl" />
+            Post Announcement
+          </Link>
+          <Link
+            to="/manage-account"
             className={`flex items-center p-2 text-gray-700 ${isActive(
               '/delete-account'
             )} rounded-lg transition duration-300`}

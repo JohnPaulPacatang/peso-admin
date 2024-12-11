@@ -1,7 +1,10 @@
-import React from 'react';
-import { AiOutlineEllipsis } from 'react-icons/ai';
+import React, { useState, useEffect, useRef } from 'react';
+import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 
 const Jobs = () => {
+    const [selectedJob, setSelectedJob] = useState(null);
+    const dropdownRef = useRef(null);
+
     const jobs = [
         {
             title: 'Brand & Producer Designer',
@@ -27,14 +30,7 @@ const Jobs = () => {
             status: 'Expired',
             location: 'USA',
         },
-        {
-            title: 'Developer for IT Company',
-            company: 'Appliance Repair',
-            jobCreated: '14 Feb, 2021',
-            applicants: '70 Applicants',
-            status: 'Active',
-            location: 'Germany',
-        },
+        
         {
             title: 'Developer for IT Company',
             company: 'APT Studio',
@@ -43,31 +39,28 @@ const Jobs = () => {
             status: 'Active',
             location: 'Germany',
         },
-        {
-            title: 'Developer for IT Company',
-            company: 'APT Studio',
-            jobCreated: '14 Feb, 2021',
-            applicants: '70 Applicants',
-            status: 'Active',
-            location: 'Germany',
-        },
-        {
-            title: 'Developer for IT Company',
-            company: 'APT Studio',
-            jobCreated: '14 Feb, 2021',
-            applicants: '70 Applicants',
-            status: 'Active',
-            location: 'Germany',
-        },
-        {
-            title: 'Developer for IT Company',
-            company: 'APT Studio',
-            jobCreated: '14 Feb, 2021',
-            applicants: '70 Applicants',
-            status: 'Active',
-            location: 'Germany',
-        },
+        
     ];
+
+    const handleActionClick = (job) => {
+        setSelectedJob(selectedJob && selectedJob.title === job.title ? null : job);
+    };
+
+    const handleUpdate = () => alert('Update functionality goes here');
+    const handleDelete = () => alert('Delete functionality goes here');
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setSelectedJob(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     return (
         <div className="py-10 px-4 sm:px-6 lg:px-14">
@@ -88,8 +81,8 @@ const Jobs = () => {
                             <option value="pending">Pending</option>
                             <option value="expired">Expired</option>
                         </select>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full text-sm font-semibold">
-                            Post a Job
+                        <button className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold">
+                            Export PDF
                         </button>
                     </div>
                 </div>
@@ -106,7 +99,7 @@ const Jobs = () => {
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-black border-t">Job Created</th>
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-black border-t">Applicants</th>
                                 <th className="px-6 py-3 text-left text-sm font-semibold text-black border-t">Status</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black border-t rounded-tr-lg">Action</th>
+                                <th className="px-6 py-3 text-left text-sm font-semibold text-black border-t rounded-tr-lg">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -119,19 +112,43 @@ const Jobs = () => {
                                     <td className="px-6 py-4 text-sm">
                                         <span
                                             className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === 'Active'
-                                                    ? 'bg-green-100 text-green-600'
-                                                    : job.status === 'Pending'
-                                                        ? 'bg-yellow-100 text-yellow-600'
-                                                        : 'bg-red-100 text-red-600'
+                                                ? 'bg-green-100 text-green-600'
+                                                : job.status === 'Pending'
+                                                    ? 'bg-yellow-100 text-yellow-600'
+                                                    : 'bg-red-100 text-red-600'
                                                 }`}
                                         >
                                             {job.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-3xl text-gray-700">
-                                        <button className="text-gray-500 hover:text-blue-700">
+                                    <td className="px-6 py-4 text-3xl text-gray-700 relative">
+                                        <button
+                                            className="text-gray-500 hover:text-blue-700"
+                                            onClick={() => handleActionClick(job)}
+                                        >
                                             <AiOutlineEllipsis />
                                         </button>
+                                        {selectedJob && selectedJob.title === job.title && (
+                                            <div
+                                                ref={dropdownRef}
+                                                className="absolute bg-white border shadow-md mt-2 top-10 rounded-md py-2 w-28 right-14 z-10"
+                                            >
+                                                <button
+                                                    onClick={handleUpdate}
+                                                    className="flex items-center w-full text-sm text-gray-700 hover:bg-gray-100 py-2 px-4"
+                                                >
+                                                    <AiOutlineEdit className="mr-2" />
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={handleDelete}
+                                                    className="flex items-center w-full text-sm text-red-600 hover:bg-gray-100 py-2 px-4"
+                                                >
+                                                    <AiOutlineDelete className="mr-2" />
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -142,18 +159,11 @@ const Jobs = () => {
 
             {/* Pagination Section */}
             <div className="flex items-center justify-center space-x-2 mt-4">
-                {/* Page Numbers */}
                 <span className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">1</span>
                 <span className="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-800 cursor-pointer">2</span>
                 <span className="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-800 cursor-pointer">3</span>
-
-                {/* Dots */}
                 <span className="text-gray-800">...</span>
-
-                {/* Last Page Number */}
                 <span className="px-3 py-1 bg-gray-200 rounded-lg hover:bg-gray-300 text-gray-800 cursor-pointer">7</span>
-
-                {/* Next Button */}
                 <button className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg cursor-pointer">
                     &gt;
                 </button>
