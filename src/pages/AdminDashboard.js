@@ -1,6 +1,6 @@
 import React from 'react';
 import DashboardCard from '../components/DashboardCard';
-import JobDashboard from '../components/JobView';
+import JobDashboard from '../components/JobDashboard';
 
 const Dashboard = () => {
   return (
