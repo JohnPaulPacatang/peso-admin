@@ -33,7 +33,7 @@ function AdminLogin() {
                         position: "top-right",
                         autoClose: 2000,
                     });
-                    navigate("/dashboard"); 
+                    navigate("/admin/dashboard"); 
                 } else {
                     toast.error("Invalid credentials. Please try again.", {
                         position: "top-right",
