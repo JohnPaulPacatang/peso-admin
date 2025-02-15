@@ -19,32 +19,37 @@ function EmployerSignup() {
         setLoading(true);
 
         try {
-            // Create user in Firebase Authentication
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-
-            // Send email verification
+           
             await sendEmailVerification(user);
-
-            // Save additional data to Firestore
+      
             await setDoc(doc(db, "employers", user.uid), {
                 companyName,
                 email,
                 uid: user.uid,
-                verified: false,  // Track verification status
+                verified: false,  
             });
 
-            toast.success("Account created! Please check your email for verification.", {
+            toast.success("Account created! Check your email to verify.", {
                 position: "top-right",
                 autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: false,
             });
 
-            navigate("/");  // Redirect to a verification reminder page
+            navigate("/"); 
         } catch (error) {
             console.error("Error signing up:", error);
             toast.error(error.message, {
                 position: "top-right",
-                autoClose: 2000,
+                autoClose: 1500,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: false,
             });
         } finally {
             setLoading(false);

@@ -231,7 +231,7 @@ const TableAnnouncements = () => {
             {isDeleteConfirmOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
                     <div className="bg-white rounded-lg shadow-lg p-6 w-96 w sm:w-80 md:w-96 lg:w-1/5">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Are you sure you want to delete this announcement?</h3>
+                        <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">Are you sure you want to delete?</h3>
                         <div className="flex justify-center space-x-4">
                             <button
                                 className="bg-red-600 text-white px-4 py-2 rounded-md text-base w-full sm:w-auto"

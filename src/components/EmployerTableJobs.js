@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import EditJobsModal from './EditJobsModal';
 
-const Jobs = () => {
+const EmployerTableJobs = () => {
     const [jobs, setJobs] = useState([]);
     const [selectedJob, setSelectedJob] = useState(null);
     const [sortOption, setSortOption] = useState('active');
@@ -17,35 +17,45 @@ const Jobs = () => {
     useEffect(() => {
         const fetchJobs = async () => {
             try {
+                // Retrieve employer data from localStorage
+                const employerData = JSON.parse(localStorage.getItem("employer"));
+                if (!employerData || !employerData.companyName) {
+                    console.error("Employer data is missing.");
+                    return;
+                }
+    
                 const querySnapshot = await getDocs(collection(db, 'jobs'));
-                const fetchedJobs = querySnapshot.docs.map((doc) => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        title: data.job_title,
-                        company: data.company,
-                        location: data.location,
-                        salaryMin: data.salary_min,
-                        salaryMax: data.salary_max,
-                        jobPosted: data.date_posted?.toDate(),
-                        applicants: data.skills?.length || 0,
-                        status: data.experience,
-                        jobCategory: data.job_category,
-                        jobDescription: data.job_description,
-                        jobType: data.job_type,
-                        logo: data.logo,
-                        skills: data.skills,
-                    };
-                });
+                const fetchedJobs = querySnapshot.docs
+                    .map((doc) => {
+                        const data = doc.data();
+                        return {
+                            id: doc.id,
+                            title: data.job_title,
+                            company: data.company,
+                            location: data.location,
+                            salaryMin: data.salary_min,
+                            salaryMax: data.salary_max,
+                            jobPosted: data.date_posted?.toDate(),
+                            applicants: data.skills?.length || 0,
+                            status: data.experience,
+                            jobCategory: data.job_category,
+                            jobDescription: data.job_description,
+                            jobType: data.job_type,
+                            logo: data.logo,
+                            skills: data.skills,
+                        };
+                    })
+                    .filter((job) => job.company === employerData.companyName); // Filter jobs for this employer
+    
                 setJobs(fetchedJobs);
             } catch (error) {
                 console.error('Error fetching jobs:', error);
             }
         };
-
+    
         fetchJobs();
     }, []);
-   
+    
 
     const handleDeleteClick = (job) => {
         setSelectedJob(job);
@@ -287,4 +297,4 @@ const Jobs = () => {
     );
 };
 
-export default Jobs;
+export default EmployerTableJobs;

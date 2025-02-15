@@ -1,5 +1,7 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { SiAwssecretsmanager } from "react-icons/si";
 import {
   CiViewList,
@@ -14,19 +16,34 @@ import mainLogo from '../assets/mainLogo.png';
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const isActive = (path) =>
     location.pathname === path ? 'bg-green-200' : 'hover:bg-green-100';
 
-  const handleLogout = (e) => {
-    e.preventDefault();
+  const handleLogout = () => {
+    setIsLogoutConfirmOpen(true);
+  };
 
-    const isConfirmed = window.confirm('Are you sure you want to log out?');
+  const confirmLogout = () => {
+    setIsLogoutConfirmOpen(false);
+    navigate('/');
+    setTimeout(() => {
+      toast.success('Logged out successfully!', {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+      });
+    }, 500);
+  };
 
-    if (isConfirmed) {
-      alert('Logged out successfully!');
-      window.location.href = '/';
-    }
+
+  const cancelLogout = () => {
+    setIsLogoutConfirmOpen(false);
   };
 
   return (
@@ -50,57 +67,27 @@ const Sidebar = () => {
 
         {/* Navigation Links */}
         <nav className="flex-1 space-y-2">
-          <Link
-            to="/dashboard"
-            className={`flex items-center p-2 text-gray-700 ${isActive(
-              '/dashboard'
-            )} rounded-lg transition duration-300`}
-          >
+          <Link to="/admin/dashboard" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/dashboard')} rounded-lg transition duration-300`}>
             <CiGrid41 className="mr-2 text-2xl" />
             Dashboard
           </Link>
-          <Link
-            to="/jobs"
-            className={`flex items-center p-2 text-gray-700 ${isActive(
-              '/jobs'
-            )} rounded-lg transition duration-300`}
-          >
+          <Link to="/admin/jobs" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/jobs')} rounded-lg transition duration-300`}>
             <CiViewList className="mr-2 text-2xl" />
             My Jobs
           </Link>
-          <Link
-            to="/submit-job"
-            className={`flex items-center p-2 text-gray-700 ${isActive(
-              '/submit-job'
-            )} rounded-lg transition duration-300`}
-          >
+          <Link to="/admin/submit-job" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/submit-job')} rounded-lg transition duration-300`}>
             <CiSquarePlus className="mr-2 text-2xl" />
             Post a Job
           </Link>
-          <Link
-            to="/announcement"
-            className={`flex items-center p-2 text-gray-700 ${isActive(
-              '/announcement'
-            )} rounded-lg transition duration-300`}
-          >
+          <Link to="/admin/announcement" className={`flex items-center p-2 text-gray-700 ${isActive('/announcement')} rounded-lg transition duration-300`}>
             <CiBellOn className="mr-2 text-2xl" />
             Announcement
           </Link>
-          <Link
-            to="/post-announcement"
-            className={`flex items-center p-2 text-gray-700 ${isActive(
-              '/post-announcement'
-            )} rounded-lg transition duration-300`}
-          >
+          <Link to="/admin/post-announcement" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/post-announcement')} rounded-lg transition duration-300`}>
             <CiBullhorn className="mr-2 text-2xl" />
             Post Announcement
           </Link>
-          <Link
-            to="/manage-account"
-            className={`flex items-center p-2 text-gray-700 ${isActive(
-              '/delete-account'
-            )} rounded-lg transition duration-300`}
-          >
+          <Link to="/admin/manage-account" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/manage-account')} rounded-lg transition duration-300`}>
             <SiAwssecretsmanager className="mr-2 text-2xl" />
             Manage Account
           </Link>
@@ -108,18 +95,31 @@ const Sidebar = () => {
 
         {/* Log Out Link */}
         <div className="mt-auto p-4">
-          <a
-            href="/"
-            onClick={handleLogout}
-            className={`flex items-center p-2 text-gray-700 ${isActive(
-              '/logout'
-            )} rounded-lg transition duration-300`}
-          >
+          <button onClick={handleLogout} className={`flex items-center p-2 text-gray-700 ${isActive('/logout')} rounded-lg transition duration-300 w-full`}>
             <CiLogout className="mr-2 text-2xl" />
             Log Out
-          </a>
+          </button>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {isLogoutConfirmOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96 sm:w-80 md:w-96 lg:w-1/5">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+              Are you sure you want to log out?
+            </h3>
+            <div className="flex justify-center space-x-4">
+              <button className="bg-red-600 text-white px-4 py-2 rounded-md text-base w-full sm:w-auto" onClick={confirmLogout}>
+                Yes, Log Out
+              </button>
+              <button className="bg-gray-300 text-black px-4 py-2 rounded-md text-base w-full sm:w-auto" onClick={cancelLogout}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

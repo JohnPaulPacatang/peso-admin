@@ -1,14 +1,14 @@
 import React from 'react'
-import EmployerPostJobForm from '../components/EmployerPostJobForm'
+import EmployerProfileCard from '../components/EmployerProfileCard'
 
-const EmployerPostJob = () => {
+const EmployerProfile = () => {
     return (
         <div className="h-screen flex flex-col bg-green-50 overflow-hidden corner-radius">
             <div className="flex-1 overflow-y-scroll ">
-                <EmployerPostJobForm />
+                <EmployerProfileCard/>
             </div>
         </div>
     )
 }
 
-export default EmployerPostJob
+export default EmployerProfile

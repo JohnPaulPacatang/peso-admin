@@ -24,26 +24,23 @@ function PostJobForm() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const fetchRecentLogos = async () => {
-      try {
-        const q = query(
-          collection(db, "jobs"),
-          orderBy("date_posted", "desc"),
-          limit(5)
-        );
-        const querySnapshot = await getDocs(q);
-        const logos = new Set();
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          if (data.logo) logos.add(data.logo);
-        });
-        setRecentLogos([...logos]);
-      } catch (error) {
-        console.error("Error fetching recent logos:", error);
-      }
-    };
     fetchRecentLogos();
   }, []);
+
+  const fetchRecentLogos = async () => {
+    try {
+      const q = query(collection(db, "jobs"), orderBy("date_posted", "desc"), limit(5));
+      const querySnapshot = await getDocs(q);
+      const logos = new Set();
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.logo) logos.add(data.logo);
+      });
+      setRecentLogos([...logos]);
+    } catch (error) {
+      console.error("Error fetching recent logos:", error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,11 +62,11 @@ function PostJobForm() {
     try {
       let logoUrl = logo;
       if (typeof logo !== "string") {
-        // If the logo is a file, upload it to Cloudinary
         const formData = new FormData();
         formData.append("file", logo);
-        formData.append("upload_preset", "company-logo");
+        formData.append("upload_preset", "peso-files-img");
         formData.append("cloud_name", process.env.REACT_APP_CLOUDINARY_CLOUD_NAME);
+        formData.append("folder", "company-logo");
 
         const cloudinaryResponse = await axios.post(
           process.env.REACT_APP_CLOUDINARY_URL,
@@ -79,7 +76,7 @@ function PostJobForm() {
         logoUrl = cloudinaryResponse.data.secure_url;
       }
 
-      // Add job to Firestore
+
       await addDoc(collection(db, "jobs"), {
         company,
         job_title: jobTitle,
@@ -115,6 +112,8 @@ function PostJobForm() {
       setSkills("");
       setExperience("Beginner");
       setLogo(null);
+
+      fetchRecentLogos();
     } catch (error) {
       console.error("Error posting job:", error);
       toast.error("Failed to post the job.", {
@@ -345,23 +344,6 @@ function PostJobForm() {
       {showModal && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-70 z-50 transition-opacity duration-300">
           <div className="bg-white w-[36rem] rounded-2xl p-8 shadow-lg relative">
-            {/* Close Button */}
-            <button
-              className="absolute top-4 right-4 text-gray-900 hover:text-gray-600"
-              onClick={() => setShowModal(false)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
             <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">Select a Logo</h2>
 
             {/* Recently Uploaded Logos Section */}

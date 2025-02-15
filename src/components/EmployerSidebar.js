@@ -1,29 +1,74 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
   CiViewList,
   CiSquarePlus,
   CiGrid41,
   CiLogout,
+  CiUser,
 } from "react-icons/ci";
-import Profile from '../assets/user.png';
+import defaultProfile from '../assets/user.png';
 import mainLogo from '../assets/mainLogo.png';
 
 const EmployerSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const [companyName, setCompanyName] = useState('');
+  const [companyLogo, setCompanyLogo] = useState('');
+
+  // Function to load employer data
+  const loadEmployerData = () => {
+    const employerInfo = JSON.parse(localStorage.getItem('employer') || '{}');
+    setCompanyName(employerInfo.companyName || 'Company Name');
+    setCompanyLogo(employerInfo.companyLogo || '');
+  };
+
+  useEffect(() => {
+    loadEmployerData();
+
+    // Listen for changes in localStorage (profile updates)
+    const handleStorageChange = (event) => {
+      if (event.key === 'employer') {
+        loadEmployerData(); // Reload profile details dynamically
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const isActive = (path) =>
     location.pathname === path ? 'bg-green-200' : 'hover:bg-green-100';
 
-  const handleLogout = (e) => {
-    e.preventDefault(); 
+  const handleLogout = () => {
+    setIsLogoutConfirmOpen(true);
+  };
 
-    const isConfirmed = window.confirm('Are you sure you want to log out?');
+  const confirmLogout = () => {
+    localStorage.removeItem('employer');
+    
+    setIsLogoutConfirmOpen(false);
+    navigate('/');
+    setTimeout(() => {
+      toast.success('Logged out successfully!', {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+      });
+    }, 500);
+  };
 
-    if (isConfirmed) {
-      alert('Logged out successfully!');
-      window.location.href = '/';
-    }
+  const cancelLogout = () => {
+    setIsLogoutConfirmOpen(false);
   };
 
   return (
@@ -38,11 +83,15 @@ const EmployerSidebar = () => {
         {/* Profile Section */}
         <div className="flex flex-col items-center mb-6">
           <img
-            src={Profile}
-            alt="Profile"
-            className="rounded-full h-12 w-12 object-cover"
+            src={companyLogo || defaultProfile}
+            alt="Company Logo"
+            className="rounded-full h-16 w-16 object-cover border border-gray-300 shadow"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = defaultProfile;
+            }}
           />
-          <span className="text-lg mt-2">Company Name</span>
+          <span className="text-lg font-semibold mt-2">{companyName}</span>
         </div>
 
         {/* Navigation Links */}
@@ -55,6 +104,15 @@ const EmployerSidebar = () => {
           >
             <CiGrid41 className="mr-2 text-2xl" />
             Dashboard
+          </Link>
+          <Link
+            to="/employer/profile"
+            className={`flex items-center p-2 text-gray-700 ${isActive(
+              '/employer/profile'
+            )} rounded-lg transition duration-300`}
+          >
+            <CiUser className="mr-2 text-2xl" />
+            Profile
           </Link>
           <Link
             to="/employer/jobs"
@@ -78,18 +136,31 @@ const EmployerSidebar = () => {
 
         {/* Log Out Link */}
         <div className="mt-auto p-4">
-          <a
-            href="/"
-            onClick={handleLogout}
-            className={`flex items-center p-2 text-gray-700 ${isActive(
-              '/logout'
-            )} rounded-lg transition duration-300`}
-          >
+          <button onClick={handleLogout} className={`flex items-center p-2 text-gray-700 ${isActive('/logout')} rounded-lg transition duration-300 w-full`}>
             <CiLogout className="mr-2 text-2xl" />
             Log Out
-          </a>
+          </button>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {isLogoutConfirmOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96 sm:w-80 md:w-96 lg:w-1/5">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+              Are you sure you want to log out?
+            </h3>
+            <div className="flex justify-center space-x-4">
+              <button className="bg-red-600 text-white px-4 py-2 rounded-md text-base w-full sm:w-auto" onClick={confirmLogout}>
+                Yes, Log Out
+              </button>
+              <button className="bg-gray-300 text-black px-4 py-2 rounded-md text-base w-full sm:w-auto" onClick={cancelLogout}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

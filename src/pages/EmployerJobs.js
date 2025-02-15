@@ -1,14 +1,15 @@
 import React from 'react'
-import Jobs from "../components/TableJobs"
+import EmployerTableJobs from '../components/EmployerTableJobs'
 
-const EmployerTableJobs = () => {
+
+const EmployerJobs = () => {
     return (
         <div className="h-screen flex flex-col bg-green-50 overflow-hidden corner-radius">
             <div className="flex-1 overflow-y-scroll ">
-                <Jobs />
+                <EmployerTableJobs/>
             </div>
         </div>
     )
 }
 
-export default EmployerTableJobs
+export default EmployerJobs
