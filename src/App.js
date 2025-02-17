@@ -26,32 +26,39 @@ function App() {
 
 function MainApp() {
   const location = useLocation();
-  const [admin, setAdmin] = useState(() => JSON.parse(localStorage.getItem("admin")) || null);
-  const [employer, setEmployer] = useState(() => JSON.parse(localStorage.getItem("employer")) || null);
+  const [userType, setUserType] = useState(null); // 'admin' or 'employer' or null
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const authenticateUser = () => {
     const adminData = JSON.parse(localStorage.getItem("admin"));
     const employerData = JSON.parse(localStorage.getItem("employer"));
 
-    setAdmin(adminData || null);
-    setEmployer(employerData || null);
+    // Clear any conflicting auth states
+    if (adminData && employerData) {
+      localStorage.removeItem("employer");
+    }
+
+    if (adminData) {
+      setUserType("admin");
+      setUserData(adminData);
+    } else if (employerData) {
+      setUserType("employer");
+      setUserData(employerData);
+    } else {
+      setUserType(null);
+      setUserData(null);
+    }
   };
 
   useEffect(() => {
     authenticateUser();
     setLoading(false);
     window.addEventListener("storage", authenticateUser);
-
     return () => {
       window.removeEventListener("storage", authenticateUser);
     };
   }, []);
-
-  // Ensure re-authentication when navigating
-  useEffect(() => {
-    authenticateUser();
-  }, [location.pathname]);
 
   if (loading) return <div>Loading...</div>;
 
@@ -60,9 +67,9 @@ function MainApp() {
 
   return (
     <div className="flex">
-      {/* Show only ONE Sidebar */}
-      {!isLoginPage && !isEmployerSignup && admin && !employer && <Sidebar />}
-      {!isLoginPage && !isEmployerSignup && employer && !admin && <EmployerSidebar />}
+      {/* Show appropriate sidebar based on user type */}
+      {!isLoginPage && !isEmployerSignup && userType === "admin" && <Sidebar />}
+      {!isLoginPage && !isEmployerSignup && userType === "employer" && <EmployerSidebar />}
 
       {/* Main Content */}
       <div className="flex-1">
@@ -71,7 +78,7 @@ function MainApp() {
           <Route path="/employer-signup" element={<EmployerSignup />} />
 
           {/* Admin Routes - Protect Access */}
-          {admin && !employer ? (
+          {userType === "admin" ? (
             <>
               <Route path="/admin/dashboard" element={<Dashboard />} />
               <Route path="/admin/jobs" element={<MyJobs />} />
@@ -85,10 +92,10 @@ function MainApp() {
           )}
 
           {/* Employer Routes - Protect Access */}
-          {employer && !admin ? (
+          {userType === "employer" ? (
             <>
               <Route path="/employer/dashboard" element={<EmployerDashboard />} />
-              <Route path="/employer/profile" element={<EmployerProfile employer={employer} />} />
+              <Route path="/employer/profile" element={<EmployerProfile employer={userData} />} />
               <Route path="/employer/jobs" element={<EmployerJobs />} />
               <Route path="/employer/post-job" element={<EmployerPostJob />} />
             </>
