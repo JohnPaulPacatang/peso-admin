@@ -29,6 +29,7 @@ function MainApp() {
   const [admin, setAdmin] = useState(() => JSON.parse(localStorage.getItem("admin")) || null);
   const [employer, setEmployer] = useState(() => JSON.parse(localStorage.getItem("employer")) || null);
   const [loading, setLoading] = useState(true);
+
   const authenticateUser = () => {
     const adminData = JSON.parse(localStorage.getItem("admin"));
     const employerData = JSON.parse(localStorage.getItem("employer"));
@@ -41,10 +42,16 @@ function MainApp() {
     authenticateUser();
     setLoading(false);
     window.addEventListener("storage", authenticateUser);
+
     return () => {
       window.removeEventListener("storage", authenticateUser);
     };
   }, []);
+
+  // Ensure re-authentication when navigating
+  useEffect(() => {
+    authenticateUser();
+  }, [location.pathname]);
 
   if (loading) return <div>Loading...</div>;
 
@@ -53,9 +60,9 @@ function MainApp() {
 
   return (
     <div className="flex">
-      {/* Show Sidebar only when logged in */}
-      {!isLoginPage && !isEmployerSignup && admin && <Sidebar />}
-      {!isLoginPage && !isEmployerSignup && employer && <EmployerSidebar />}
+      {/* Show only ONE Sidebar */}
+      {!isLoginPage && !isEmployerSignup && admin && !employer && <Sidebar />}
+      {!isLoginPage && !isEmployerSignup && employer && !admin && <EmployerSidebar />}
 
       {/* Main Content */}
       <div className="flex-1">
@@ -64,7 +71,7 @@ function MainApp() {
           <Route path="/employer-signup" element={<EmployerSignup />} />
 
           {/* Admin Routes - Protect Access */}
-          {admin ? (
+          {admin && !employer ? (
             <>
               <Route path="/admin/dashboard" element={<Dashboard />} />
               <Route path="/admin/jobs" element={<MyJobs />} />
@@ -78,7 +85,7 @@ function MainApp() {
           )}
 
           {/* Employer Routes - Protect Access */}
-          {employer ? (
+          {employer && !admin ? (
             <>
               <Route path="/employer/dashboard" element={<EmployerDashboard />} />
               <Route path="/employer/profile" element={<EmployerProfile employer={employer} />} />

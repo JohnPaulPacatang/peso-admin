@@ -5,9 +5,9 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { CiInboxOut } from "react-icons/ci";
 import { ClipLoader } from "react-spinners";
+import { isProfileComplete } from "../utils/profileValidation";
 
 function PostJobForm() {
-
   const [company, setCompany] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setJobDescription] = useState("");
@@ -22,6 +22,25 @@ function PostJobForm() {
   const [recentLogos, setRecentLogos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [isProfileIncomplete, setIsProfileIncomplete] = useState(true);
+  const [profileMessage, setProfileMessage] = useState("");
+
+  useEffect(() => {
+    const checkProfileCompletion = () => {
+      const storedEmployer = JSON.parse(localStorage.getItem("employer"));
+      if (!storedEmployer) {
+        setIsProfileIncomplete(true);
+        setProfileMessage("Please create your employer profile first");
+        return;
+      }
+
+      const isComplete = isProfileComplete(storedEmployer);
+      setIsProfileIncomplete(!isComplete);
+      setProfileMessage(isComplete ? "" : "Please complete your profile before posting a job");
+    };
+
+    checkProfileCompletion();
+  }, []);
 
   useEffect(() => {
     const storedEmployer = JSON.parse(localStorage.getItem("employer"));
@@ -50,8 +69,20 @@ function PostJobForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (isProfileIncomplete) {
+      toast.error("Please complete your profile before posting a job", {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+      return;
+    }
+
     if (!company || !jobTitle || !jobDescription || !location || !logo) {
-      toast.error("All fields are required, including a logo!", {
+      toast.error("All fields are required!", {
         position: "top-right",
         autoClose: 1500,
         hideProgressBar: false,
@@ -106,7 +137,6 @@ function PostJobForm() {
         draggable: true,
       });
 
-      setCompany("");
       setJobTitle("");
       setJobDescription("");
       setJobCategory("");
@@ -116,7 +146,6 @@ function PostJobForm() {
       setSalaryMax("");
       setSkills("");
       setExperience("Beginner");
-      setLogo(null);
 
       fetchRecentLogos();
     } catch (error) {
@@ -142,7 +171,7 @@ function PostJobForm() {
           {/* Job Details */}
           <div className="p-8">
             <h2 className="text-xl font-medium text-gray-800 mb-4">Job Details</h2>
-            
+
             <div className="mb-4">
               <label className="block text-gray-600 mb-2" htmlFor="company">
                 Company Name <span className="text-red-500">*</span>
@@ -318,11 +347,18 @@ function PostJobForm() {
           <div className="px-8">
             <button
               type="submit"
-              disabled={loading}
-              className={`w-full ${loading ? "bg-blue-700 text-white" : "bg-green-500 hover:bg-green-600"} text-white font-medium py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
+              disabled={loading || isProfileIncomplete}
+              className={`w-full ${loading
+                  ? "bg-blue-700"
+                  : isProfileIncomplete
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-500 hover:bg-green-600"
+                } text-white font-medium py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
             >
               {loading ? (
                 <ClipLoader color="white" size={24} />
+              ) : isProfileIncomplete ? (
+                "Complete Profile to Post Job"
               ) : (
                 "Post Job"
               )}

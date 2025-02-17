@@ -56,7 +56,7 @@ const EmployerSidebar = () => {
     setIsLogoutConfirmOpen(false);
     navigate('/');
     setTimeout(() => {
-      toast.success('Logged out successfully!', {
+      toast.success('Logged out!', {
         position: "top-right",
         autoClose: 1500,
         hideProgressBar: false,

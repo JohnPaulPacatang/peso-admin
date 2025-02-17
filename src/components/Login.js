@@ -25,7 +25,7 @@ function AdminEmployerLogin({ onLogin }) {
                 const adminData = querySnapshot.docs[0].data();
                 if (adminData.password === password) {
                     localStorage.setItem("admin", JSON.stringify({ role: "admin", email }));
-                    toast.success("Admin login successful!", { autoClose: 2000 });
+                    toast.success("Admin logged in!", { autoClose: 2000 });
 
                     onLogin(); 
                     navigate("/admin/dashboard");
@@ -39,7 +39,7 @@ function AdminEmployerLogin({ onLogin }) {
                 await user.reload();
 
                 if (!user.emailVerified) {
-                    toast.error("Please verify your email before logging in.", { autoClose: 2000 });
+                    toast.error("Please verify your email.", { autoClose: 2000 });
                     setLoading(false);
                     return;
                 }
@@ -70,7 +70,7 @@ function AdminEmployerLogin({ onLogin }) {
                         verified: employerData.verified
                     }));
 
-                    toast.success("Employer login successful!", { autoClose: 2000 });
+                    toast.success("Employer logged in!", { autoClose: 2000 });
 
                     onLogin(); 
                     navigate("/employer/dashboard");
