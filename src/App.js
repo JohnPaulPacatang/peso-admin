@@ -26,29 +26,15 @@ function App() {
 
 function MainApp() {
   const location = useLocation();
-  const [userType, setUserType] = useState(null); // 'admin' or 'employer' or null
-  const [userData, setUserData] = useState(null);
+  const [admin, setAdmin] = useState(() => JSON.parse(localStorage.getItem("admin")) || null);
+  const [employer, setEmployer] = useState(() => JSON.parse(localStorage.getItem("employer")) || null);
   const [loading, setLoading] = useState(true);
-
   const authenticateUser = () => {
     const adminData = JSON.parse(localStorage.getItem("admin"));
     const employerData = JSON.parse(localStorage.getItem("employer"));
 
-    // Clear any conflicting auth states
-    if (adminData && employerData) {
-      localStorage.removeItem("employer");
-    }
-
-    if (adminData) {
-      setUserType("admin");
-      setUserData(adminData);
-    } else if (employerData) {
-      setUserType("employer");
-      setUserData(employerData);
-    } else {
-      setUserType(null);
-      setUserData(null);
-    }
+    setAdmin(adminData || null);
+    setEmployer(employerData || null);
   };
 
   useEffect(() => {
@@ -67,9 +53,9 @@ function MainApp() {
 
   return (
     <div className="flex">
-      {/* Show appropriate sidebar based on user type */}
-      {!isLoginPage && !isEmployerSignup && userType === "admin" && <Sidebar />}
-      {!isLoginPage && !isEmployerSignup && userType === "employer" && <EmployerSidebar />}
+      {/* Show Sidebar only when logged in */}
+      {!isLoginPage && !isEmployerSignup && admin && <Sidebar />}
+      {!isLoginPage && !isEmployerSignup && employer && <EmployerSidebar />}
 
       {/* Main Content */}
       <div className="flex-1">
@@ -78,7 +64,7 @@ function MainApp() {
           <Route path="/employer-signup" element={<EmployerSignup />} />
 
           {/* Admin Routes - Protect Access */}
-          {userType === "admin" ? (
+          {admin ? (
             <>
               <Route path="/admin/dashboard" element={<Dashboard />} />
               <Route path="/admin/jobs" element={<MyJobs />} />
@@ -92,10 +78,10 @@ function MainApp() {
           )}
 
           {/* Employer Routes - Protect Access */}
-          {userType === "employer" ? (
+          {employer ? (
             <>
               <Route path="/employer/dashboard" element={<EmployerDashboard />} />
-              <Route path="/employer/profile" element={<EmployerProfile employer={userData} />} />
+              <Route path="/employer/profile" element={<EmployerProfile employer={employer} />} />
               <Route path="/employer/jobs" element={<EmployerJobs />} />
               <Route path="/employer/post-job" element={<EmployerPostJob />} />
             </>
