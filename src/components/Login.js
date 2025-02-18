@@ -17,6 +17,11 @@ function AdminEmployerLogin({ onLogin }) {
         setLoading(true);
 
         try {
+            // Clear any existing login data
+            localStorage.removeItem("admin");
+            localStorage.removeItem("employer");
+
+            // First check if it's an admin
             const adminRef = collection(db, "admin");
             const q = query(adminRef, where("email", "==", email));
             const querySnapshot = await getDocs(q);
@@ -24,59 +29,61 @@ function AdminEmployerLogin({ onLogin }) {
             if (!querySnapshot.empty) {
                 const adminData = querySnapshot.docs[0].data();
                 if (adminData.password === password) {
-                    localStorage.setItem("admin", JSON.stringify({ role: "admin", email }));
+                    const adminInfo = { role: "admin", email };
+                    localStorage.setItem("admin", JSON.stringify(adminInfo));
                     toast.success("Admin logged in!", { autoClose: 2000 });
-
-                    onLogin(); 
+                    onLogin(); // Trigger the authentication update
                     navigate("/admin/dashboard");
+                    return; // Exit after successful admin login
                 } else {
                     toast.error("Invalid admin credentials.", { autoClose: 1500 });
-                }
-            } else {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                await user.reload();
-
-                if (!user.emailVerified) {
-                    toast.error("Please verify your email.", { autoClose: 2000 });
                     setLoading(false);
                     return;
                 }
+            }
 
-                const employerRef = doc(db, "employers", user.uid);
-                const employerSnap = await getDoc(employerRef);
+            // If not admin, try employer login
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
 
-                if (employerSnap.exists()) {
-                    const employerData = employerSnap.data();
+            if (!user.emailVerified) {
+                toast.error("Please verify your email.", { autoClose: 2000 });
+                setLoading(false);
+                return;
+            }
 
-                    if (!employerData.verified) {
-                        await updateDoc(employerRef, { verified: true });
-                    }
+            const employerRef = doc(db, "employers", user.uid);
+            const employerSnap = await getDoc(employerRef);
 
-                    localStorage.setItem("employer", JSON.stringify({
-                        role: "employer",
-                        uid: user.uid,
-                        email: user.email,
-                        companyName: employerData.companyName,
-                        companyAddress: employerData.company_address,
-                        companyDescription: employerData.company_description,
-                        companyPhone: employerData.company_phone,
-                        contactPersonName: employerData.contact_person_name,
-                        contactPersonEmail: employerData.contact_person_email,
-                        linkedinProfile: employerData.linkedin_profile,
-                        businessPermit: employerData.business_permit,
-                        companyLogo: employerData.company_logo,
-                        verified: employerData.verified
-                    }));
+            if (employerSnap.exists()) {
+                const employerData = employerSnap.data();
 
-                    toast.success("Employer logged in!", { autoClose: 2000 });
-
-                    onLogin(); 
-                    navigate("/employer/dashboard");
-                } else {
-                    toast.error("Employer not found.", { autoClose: 2000 });
+                if (!employerData.verified) {
+                    await updateDoc(employerRef, { verified: true });
                 }
+
+                const employerInfo = {
+                    role: "employer",
+                    uid: user.uid,
+                    email: user.email,
+                    companyName: employerData.companyName,
+                    companyAddress: employerData.company_address,
+                    companyDescription: employerData.company_description,
+                    companyPhone: employerData.company_phone,
+                    contactPersonName: employerData.contact_person_name,
+                    contactPersonEmail: employerData.contact_person_email,
+                    linkedinProfile: employerData.linkedin_profile,
+                    businessPermit: employerData.business_permit,
+                    companyLogo: employerData.company_logo,
+                    verified: employerData.verified
+                };
+
+                localStorage.setItem("employer", JSON.stringify(employerInfo));
+                toast.success("Employer logged in!", { autoClose: 2000 });
+                onLogin(); // Trigger the authentication update
+                navigate("/employer/dashboard");
+            } else {
+                toast.error("Employer not found.", { autoClose: 2000 });
             }
         } catch (error) {
             console.error("Login error:", error);

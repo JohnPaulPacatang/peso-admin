@@ -3,9 +3,7 @@ import { FaUserCircle, FaCheckCircle, FaPaperPlane, FaBriefcase } from 'react-ic
 
 function DashboardCard({ number, label, icon, className }) {
   return (
-    <div
-      className={`bg-white p-6 m-1 sm:p-8 lg:p-10 rounded-3xl shadow-md flex items-center justify-between transition-transform transform hover:translate-y-[-5px] hover:shadow-lg cursor-pointer ${className}`}
-    >
+    <div className={`bg-white p-6 m-1 sm:p-8 lg:p-10 rounded-3xl shadow-md flex items-center justify-between transition-transform transform hover:translate-y-[-5px] hover:shadow-lg cursor-pointer ${className}`}>
       <div className="flex flex-col items-start text-left">
         <div className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">{number}</div>
         <div className="text-xs sm:text-sm text-gray-500">{label}</div>

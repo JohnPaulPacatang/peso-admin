@@ -26,15 +26,24 @@ function App() {
 
 function MainApp() {
   const location = useLocation();
-  const [admin, setAdmin] = useState(() => JSON.parse(localStorage.getItem("admin")) || null);
-  const [employer, setEmployer] = useState(() => JSON.parse(localStorage.getItem("employer")) || null);
+  const [userType, setUserType] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+
   const authenticateUser = () => {
     const adminData = JSON.parse(localStorage.getItem("admin"));
     const employerData = JSON.parse(localStorage.getItem("employer"));
 
-    setAdmin(adminData || null);
-    setEmployer(employerData || null);
+    if (adminData) {
+      setUserType("admin");
+      setUserData(adminData);
+    } else if (employerData) {
+      setUserType("employer");
+      setUserData(employerData);
+    } else {
+      setUserType(null);
+      setUserData(null);
+    }
   };
 
   useEffect(() => {
@@ -53,9 +62,13 @@ function MainApp() {
 
   return (
     <div className="flex">
-      {/* Show Sidebar only when logged in */}
-      {!isLoginPage && !isEmployerSignup && admin && <Sidebar />}
-      {!isLoginPage && !isEmployerSignup && employer && <EmployerSidebar />}
+      {/* Show appropriate Sidebar based on user type */}
+      {!isLoginPage && !isEmployerSignup && (
+        <>
+          {userType === "admin" && <Sidebar />}
+          {userType === "employer" && <EmployerSidebar />}
+        </>
+      )}
 
       {/* Main Content */}
       <div className="flex-1">
@@ -64,7 +77,7 @@ function MainApp() {
           <Route path="/employer-signup" element={<EmployerSignup />} />
 
           {/* Admin Routes - Protect Access */}
-          {admin ? (
+          {userType === "admin" ? (
             <>
               <Route path="/admin/dashboard" element={<Dashboard />} />
               <Route path="/admin/jobs" element={<MyJobs />} />
@@ -78,10 +91,10 @@ function MainApp() {
           )}
 
           {/* Employer Routes - Protect Access */}
-          {employer ? (
+          {userType === "employer" ? (
             <>
               <Route path="/employer/dashboard" element={<EmployerDashboard />} />
-              <Route path="/employer/profile" element={<EmployerProfile employer={employer} />} />
+              <Route path="/employer/profile" element={<EmployerProfile employer={userData} />} />
               <Route path="/employer/jobs" element={<EmployerJobs />} />
               <Route path="/employer/post-job" element={<EmployerPostJob />} />
             </>

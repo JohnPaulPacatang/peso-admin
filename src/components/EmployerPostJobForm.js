@@ -23,7 +23,7 @@ function PostJobForm() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isProfileIncomplete, setIsProfileIncomplete] = useState(true);
-  const [profileMessage, setProfileMessage] = useState("");
+  const [, setProfileMessage] = useState("");
 
   useEffect(() => {
     const checkProfileCompletion = () => {
