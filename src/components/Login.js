@@ -96,7 +96,7 @@ function AdminEmployerLogin({ onLogin }) {
     return (
         <div className="flex flex-col md:flex-row h-screen">
             <div className="w-full md:w-1/2 bg-green-50 flex flex-col justify-center items-center p-24">
-                <h1 className="text-4xl font-extrabold mb-6 text-center">Ready to create more opportunities?</h1>
+                <h1 className="text-xl font-extrabold mb-6 text-center">Ready to create more opportunities?</h1>
                 <p className="text-base text-center">Manage job postings, connect with candidates, and shape the future of work.</p>
             </div>
             <div className="w-full md:w-1/2 flex justify-center items-center bg-white">

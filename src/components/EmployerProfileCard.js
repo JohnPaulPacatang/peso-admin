@@ -222,7 +222,8 @@ const EmployerProfileCard = () => {
     };
 
     return (
-        <div className="p-4 sm:p-6 md:p-8 lg:p-12 w-full mx-auto space-y-6">
+        <div className="px-2 py-12 sm:px-4 md:px-6 lg:px-8 w-full mx-auto space-y-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Profile</h1>
             <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
                 {/* Profile Image Card */}
                 <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-3xl shadow-lg border border-gray-200 flex flex-col items-center w-full max-w-xs">
@@ -258,27 +259,27 @@ const EmployerProfileCard = () => {
                     <form className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                         <div>
                             <label className="block text-gray-600 mb-2 text-sm">Company Name</label>
-                            <input type="text" name="companyName" readOnly value={employer.companyName} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 bg-gray-100 cursor-default text-sm sm:text-base" />
+                            <input type="text" name="companyName" readOnly value={employer.companyName} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 bg-gray-100 cursor-default text-sm" />
                         </div>
                         <div>
                             <label className="block text-gray-600 mb-2 text-sm">Company Email</label>
-                            <input type="email" name="email" readOnly value={employer.email} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 bg-gray-100 cursor-default text-sm sm:text-base" />
+                            <input type="email" name="email" readOnly value={employer.email} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 bg-gray-100 cursor-default text-sm" />
                         </div>
                         <div>
                             <label className="block text-gray-600 mb-2 text-sm">Company Phone</label>
-                            <input type="text" name="companyPhone" value={employer.companyPhone} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base" />
+                            <input type="text" name="companyPhone" value={employer.companyPhone} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm" />
                         </div>
                         <div>
                             <label className="block text-gray-600 mb-2 text-sm">LinkedIn Profile</label>
-                            <input type="text" name="linkedinProfile" value={employer.linkedinProfile} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base" />
+                            <input type="text" name="linkedinProfile" value={employer.linkedinProfile} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm" />
                         </div>
                         <div>
                             <label className="block text-gray-600 mb-2 text-sm">Contact Person Name</label>
-                            <input type="text" name="contactPersonName" value={employer.contactPersonName} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base" />
+                            <input type="text" name="contactPersonName" value={employer.contactPersonName} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm" />
                         </div>
                         <div>
                             <label className="block text-gray-600 mb-2 text-sm">Contact Person Email</label>
-                            <input type="email" name="contactPersonEmail" value={employer.contactPersonEmail} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base" />
+                            <input type="email" name="contactPersonEmail" value={employer.contactPersonEmail} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm" />
                         </div>
                     </form>
                 </div>
@@ -294,7 +295,7 @@ const EmployerProfileCard = () => {
                             name="companyAddress"
                             value={employer.companyAddress}
                             onChange={handleChange}
-                            className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base"
+                            className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm"
                             rows="3"
                         ></textarea>
                     </div>
@@ -304,7 +305,7 @@ const EmployerProfileCard = () => {
                             name="companyDescription"
                             value={employer.companyDescription}
                             onChange={handleChange}
-                            className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm sm:text-base"
+                            className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm"
                             rows="3"
                         ></textarea>
                     </div>

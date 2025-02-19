@@ -59,11 +59,11 @@ function PostAnnouncementForm() {
   };
 
   return (
-    <div className="py-12 px-14">
+    <div className="py-12 px-4 sm:px-6 lg:px-10">
       <h1 className="text-3xl font-bold text-gray-700 mb-6">Post a New Announcement</h1>
       <div className="mx-auto bg-white p-8 rounded-3xl shadow-md">
         <form onSubmit={handleSubmit}>
-          <div className="p-8">
+          <div className="p-3">
             <h2 className="text-xl font-medium text-gray-800 mb-4">Announcement Details</h2>
             <div className="mb-4">
               <label className="block text-gray-600 mb-2" htmlFor="announcement-title">
@@ -109,7 +109,7 @@ function PostAnnouncementForm() {
           </div>
 
           {/* Submit Button */}
-          <div className="px-8">
+          <div className="px-3">
             <button
               type="submit"
               disabled={loading}

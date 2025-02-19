@@ -143,7 +143,7 @@ const TableAnnouncements = () => {
 
 
     return (
-        <div className="py-10 px-4 sm:px-6 lg:px-14">
+        <div className="py-10 px-4 sm:px-6 lg:px-10">
             {/* Header Section */}
             <div className="max-w-8xl mx-auto py-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
@@ -166,23 +166,23 @@ const TableAnnouncements = () => {
                     <table className="min-w-full border-gray-200 rounded-xl">
                         <thead>
                             <tr className="bg-gray-300">
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Title</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Description</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Location</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Time & Date</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Actions</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-xl">Title</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Description</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Location</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Time & Date</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-xl">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredAnnouncements.map((announcement) => (
                                 <tr key={announcement.id} className="border-b border-gray-200">
-                                    <td className="px-6 py-4 text-sm text-gray-700">{announcement.title}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-700">{announcement.description}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-700">{announcement.location}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-700">
+                                    <td className="px-3 py-4 text-sm text-gray-700">{announcement.title}</td>
+                                    <td className="px-3 py-4 text-sm text-gray-700">{announcement.description}</td>
+                                    <td className="px-3 py-4 text-sm text-gray-700">{announcement.location}</td>
+                                    <td className="px-3 py-4 text-sm text-gray-700">
                                         {announcement.date && announcement.date.toDate().toLocaleDateString()}
                                     </td>
-                                    <td className="px-6 py-4 text-3xl text-gray-700 relative">
+                                    <td className="px-3 py-4 text-3xl text-gray-700 relative">
                                         <button
                                             className="text-gray-500 hover:text-blue-700 text-center"
                                             onClick={() => handleActionClick(announcement)}>

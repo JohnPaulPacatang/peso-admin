@@ -179,7 +179,7 @@ const Jobs = () => {
     }, [isDeleteConfirmOpen, isModalOpen]);
 
     return (
-        <div className="py-10 px-4 sm:px-6 lg:px-14">
+        <div className="py-10 px-4 sm:px-6 lg:px-10">
             {/* Header Section */}
             <div className="max-w-8xl mx-auto py-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
@@ -209,38 +209,38 @@ const Jobs = () => {
             </div>
 
             {/* Jobs Table */}
-            <div className="max-w-8xl mx-auto pt-4">
+            <div className="max-w-8xl mx-auto pt-4 overflow-x-auto">
                 <div className="shadow-md sm:rounded-3xl bg-white">
                     <table className="min-w-full border-gray-200 rounded-lg">
                         <thead>
                             <tr className="bg-gray-300">
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Title</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Company</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Location</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Salary Range</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Job Posted</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Applicants</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black">Status</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Actions</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-2xl">Title</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Company</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Location</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Salary Range</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Job Posted</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Applicants</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Status</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-xl">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {jobs.map((job) => (
                                 <tr key={job.id} className="border-b border-gray-200">
-                                    <td className="px-6 py-4 text-sm text-gray-700">{job.title}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-700">{job.company}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-700">{job.location}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-700">{job.salaryMin} - {job.salaryMax}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-700">
+                                    <td className="px-3 py-3 text-sm text-gray-700">{job.title}</td>
+                                    <td className="px-3 py-3 text-sm text-gray-700">{job.company}</td>
+                                    <td className="px-3 py-3 text-sm text-gray-700">{job.location}</td>
+                                    <td className="px-3 py-3 text-sm text-gray-700">{job.salaryMin} - {job.salaryMax}</td>
+                                    <td className="px-3 py-3 text-sm text-gray-700">
                                         {job.jobPosted ? job.jobPosted.toLocaleDateString('en-US') : 'N/A'}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-700">{job.applicants}</td>
-                                    <td className="px-6 py-4 text-sm">
+                                    <td className="px-3 py-3 text-sm text-gray-700">{job.applicants}</td>
+                                    <td className="px-3 py-3 text-sm">
                                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === 'Active' ? 'bg-green-100 text-green-600' : job.status === 'Pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'}`}>
                                             {job.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-3xl text-gray-700 relative">
+                                    <td className="px-3 py-3 text-3xl text-gray-700 relative">
                                         <button className="text-gray-500 hover:text-blue-700" onClick={() => handleActionClick(job)}>
                                             <AiOutlineEllipsis />
                                         </button>

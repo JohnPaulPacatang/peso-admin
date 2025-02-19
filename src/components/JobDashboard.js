@@ -56,9 +56,9 @@ const JobDashboard = () => {
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 p-6 sm:p-8 lg:px-14 ">
+    <div className="flex flex-col lg:flex-row gap-12 p-4 sm:p-6 lg:px-9 ">
       {/* Job Views Component */}
-      <div className="bg-white shadow-lg rounded-3xl p-10 w-full lg:w-1/2">
+      <div className="bg-white shadow-lg rounded-3xl p-6 w-full lg:w-1/2">
         <h2 className="text-xl font-semibold text-gray-700 mb-4">Job Views</h2>
         <div className="mb-4">
           <label className="text-gray-600 text-sm mb-2 block">Jobs:</label>

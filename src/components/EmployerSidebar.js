@@ -95,14 +95,14 @@ const EmployerSidebar = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 space-y-2">
+        <nav className="flex-1 space-y-2 text-sm">
           <Link
             to="/employer/dashboard"
             className={`flex items-center p-2 text-gray-700 ${isActive(
               '/employer/dashboard'
             )} rounded-lg transition duration-300`}
           >
-            <CiGrid41 className="mr-2 text-2xl" />
+            <CiGrid41 className="mr-2 text-xl" />
             Dashboard
           </Link>
           <Link
@@ -111,7 +111,7 @@ const EmployerSidebar = () => {
               '/employer/profile'
             )} rounded-lg transition duration-300`}
           >
-            <CiUser className="mr-2 text-2xl" />
+            <CiUser className="mr-2 text-xl" />
             Profile
           </Link>
           <Link
@@ -120,7 +120,7 @@ const EmployerSidebar = () => {
               '/employer/jobs'
             )} rounded-lg transition duration-300`}
           >
-            <CiViewList className="mr-2 text-2xl" />
+            <CiViewList className="mr-2 text-xl" />
             My Jobs
           </Link>
           <Link
@@ -129,15 +129,15 @@ const EmployerSidebar = () => {
               '/employer/post-job'
             )} rounded-lg transition duration-300`}
           >
-            <CiSquarePlus className="mr-2 text-2xl" />
+            <CiSquarePlus className="mr-2 text-xl" />
             Post a Job
           </Link>
         </nav>
 
         {/* Log Out Link */}
-        <div className="mt-auto p-4">
-          <button onClick={handleLogout} className={`flex items-center p-2 text-gray-700 ${isActive('/logout')} rounded-lg transition duration-300 w-full`}>
-            <CiLogout className="mr-2 text-2xl" />
+        <div className="mt-auto p-2 text-sm">
+          <button onClick={handleLogout} className={`flex items-center p-2 text-red-500 font-semibold ${isActive('/logout')} rounded-lg transition duration-300 w-full`}>
+            <CiLogout className="mr-2 text-xl" />
             Log Out
           </button>
         </div>
@@ -151,10 +151,10 @@ const EmployerSidebar = () => {
               Are you sure you want to log out?
             </h3>
             <div className="flex justify-center space-x-4">
-              <button className="bg-red-600 text-white px-4 py-2 rounded-md text-base w-full sm:w-auto" onClick={confirmLogout}>
+              <button className="bg-red-600 text-white px-2 py-2 rounded-md text-base w-full sm:w-auto" onClick={confirmLogout}>
                 Yes, Log Out
               </button>
-              <button className="bg-gray-300 text-black px-4 py-2 rounded-md text-base w-full sm:w-auto" onClick={cancelLogout}>
+              <button className="bg-gray-300 text-black px-2 py-2 rounded-md text-base w-full sm:w-auto" onClick={cancelLogout}>
                 Cancel
               </button>
             </div>

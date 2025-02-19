@@ -94,7 +94,7 @@ const ManageAccountsTable = () => {
     }, []);
 
     return (
-        <div className="py-10 px-4 sm:px-6 lg:px-14">
+        <div className="py-10 px-4 sm:px-6 lg:px-10">
             <ToastContainer />
             <div className="max-w-8xl mx-auto py-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
@@ -119,21 +119,21 @@ const ManageAccountsTable = () => {
                     <table className="min-w-full border-gray-200 rounded-lg">
                         <thead>
                             <tr className="bg-gray-300">
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black border-t rounded-tl-lg">Company Name</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black border-t">Email</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black border-t">Verified</th>
-                                <th className="px-6 py-3 text-left text-sm font-semibold text-black border-t rounded-tr-lg">Actions</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t rounded-tl-xl">Company Name</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Email</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Verified</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t rounded-tr-xl">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredAccounts.map((account, index) => (
                                 <tr key={account.id || index} className="border-b border-gray-200">
-                                    <td className="px-6 py-4 text-sm text-gray-700">{account.companyName}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-700">{account.email}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-700">
+                                    <td className="px-3 py-4 text-sm text-gray-700">{account.companyName}</td>
+                                    <td className="px-3 py-4 text-sm text-gray-700">{account.email}</td>
+                                    <td className="px-3 py-4 text-sm text-gray-700">
                                         {account.verified ? '✔️ Yes' : '❌ No'}
                                     </td>
-                                    <td className="px-6 py-4 text-3xl text-gray-700 relative">
+                                    <td className="px-3 py-4 text-3xl text-gray-700 relative">
                                         <button
                                             className="text-gray-500 hover:text-blue-700"
                                             onClick={() => handleActionClick(account)}

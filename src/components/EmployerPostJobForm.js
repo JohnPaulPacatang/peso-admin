@@ -164,12 +164,12 @@ function PostJobForm() {
   };
 
   return (
-    <div className="py-12 px-14">
+    <div className="py-12 px-4 sm:px-6 lg:px-10">
       <h1 className="text-3xl font-bold text-gray-700 mb-6">Post a New Job</h1>
       <div className="mx-auto bg-white p-8 rounded-3xl shadow-md">
         <form onSubmit={handleSubmit}>
           {/* Job Details */}
-          <div className="p-8">
+          <div className="p-3">
             <h2 className="text-xl font-medium text-gray-800 mb-4">Job Details</h2>
 
             <div className="mb-4">
@@ -181,7 +181,7 @@ function PostJobForm() {
                 id="company"
                 value={company}
                 readOnly
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-3xl px-3 py-3 bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
@@ -195,7 +195,7 @@ function PostJobForm() {
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
                 placeholder="Ex: Product Designer"
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
@@ -208,7 +208,7 @@ function PostJobForm() {
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
                 placeholder="Write about the job in detail..."
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
                 rows="4"
               ></textarea>
             </div>
@@ -223,7 +223,7 @@ function PostJobForm() {
                 value={jobCategory}
                 onChange={(e) => setJobCategory(e.target.value)}
                 placeholder="Ex: Software Development"
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
@@ -235,7 +235,7 @@ function PostJobForm() {
                 id="job-type"
                 value={jobType}
                 onChange={(e) => setJobType(e.target.value)}
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="Full-time">Full-time</option>
                 <option value="Part-time">Part-time</option>
@@ -253,7 +253,7 @@ function PostJobForm() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Ex: New York, NY"
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
@@ -267,7 +267,7 @@ function PostJobForm() {
                 value={salaryMin}
                 onChange={(e) => setSalaryMin(e.target.value)}
                 placeholder="Ex: 50000"
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
@@ -281,7 +281,7 @@ function PostJobForm() {
                 value={salaryMax}
                 onChange={(e) => setSalaryMax(e.target.value)}
                 placeholder="Ex: 100000"
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
@@ -307,7 +307,7 @@ function PostJobForm() {
           </div>
 
           {/* Skills & Experience */}
-          <div className="p-8">
+          <div className="p-3">
             <h2 className="text-xl font-medium text-gray-800 mb-4">Skills & Experience</h2>
             <div className="mb-4">
               <label className="block text-gray-600 mb-2" htmlFor="skills">
@@ -319,7 +319,7 @@ function PostJobForm() {
                 value={skills}
                 onChange={(e) => setSkills(e.target.value)}
                 placeholder="Add Skills"
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
@@ -331,7 +331,7 @@ function PostJobForm() {
                 id="experience"
                 value={experience}
                 onChange={(e) => setExperience(e.target.value)}
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="Beginner">Beginner</option>
                 <option value="Intermediate">Intermediate</option>
@@ -344,7 +344,7 @@ function PostJobForm() {
 
 
           {/* Submit Button */}
-          <div className="px-8">
+          <div className="px-3">
             <button
               type="submit"
               disabled={loading || isProfileIncomplete}
