@@ -191,7 +191,7 @@ const TableAnnouncements = () => {
                                         {isDropdownOpen && selectedAnnouncement && selectedAnnouncement.id === announcement.id && (
                                             <div
                                                 ref={dropdownRef}
-                                                className="absolute bg-white border shadow-md mt-2 top-10 rounded-md py-2 w-28 right-5 z-10"
+                                                className="absolute bg-white border shadow-md mt-2 top-10 rounded-md py-2 w-28 right-1 z-10"
                                             >
                                                 <button
                                                     onClick={handleEdit}

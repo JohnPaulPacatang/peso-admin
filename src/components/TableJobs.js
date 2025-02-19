@@ -209,7 +209,7 @@ const Jobs = () => {
             </div>
 
             {/* Jobs Table */}
-            <div className="max-w-8xl mx-auto pt-4 overflow-x-auto">
+            <div className="max-w-8xl mx-auto pt-4">
                 <div className="shadow-md sm:rounded-3xl bg-white">
                     <table className="min-w-full border-gray-200 rounded-lg">
                         <thead>
@@ -245,7 +245,7 @@ const Jobs = () => {
                                             <AiOutlineEllipsis />
                                         </button>
                                         {selectedJob && selectedJob.id === job.id && (
-                                            <div ref={dropdownRef} className="absolute bg-white border shadow-md mt-2 top-10 rounded-md py-2 w-28 right-14 z-10">
+                                            <div ref={dropdownRef} className="absolute bg-white border shadow-md mt-2 top-10 rounded-md py-2 w-28 right-1 z-10">
                                                 <button onClick={() => handleUpdate(job)} className="flex items-center w-full text-sm text-gray-700 hover:bg-gray-100 py-2 px-4">
                                                     <AiOutlineEdit className="mr-2" />
                                                     Edit

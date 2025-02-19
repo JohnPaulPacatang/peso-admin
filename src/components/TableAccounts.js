@@ -143,7 +143,7 @@ const ManageAccountsTable = () => {
                                         {selectedAccount && selectedAccount.id === account.id && (
                                             <div
                                                 ref={dropdownRef}
-                                                className="absolute bg-white border shadow-md mt-2 top-5 rounded-md py-2 w-28 right-14 z-10"
+                                                className="absolute bg-white border shadow-md mt-2 top-5 rounded-md py-2 w-28 right-1 z-10"
                                             >
                                                 <button
                                                     onClick={handleUpdate}
