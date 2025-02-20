@@ -15,7 +15,7 @@ import EmployerDashboard from "./pages/EmployerDashboard";
 import EmployerJobs from "./pages/EmployerJobs";
 import EmployerPostJob from "./pages/EmployerPostJob";
 import EmployerProfile from "./pages/EmployerProfile";
-
+import ForgotPassword from "./components/ForgotPasswordAdmin";
 function App() {
   return (
     <Router>
@@ -45,6 +45,9 @@ function MainApp() {
       setUserData(null);
     }
   };
+  useEffect(() => {
+    document.title = "PESO Admin"; 
+  }, []);
 
   useEffect(() => {
     authenticateUser();
@@ -59,11 +62,14 @@ function MainApp() {
 
   const isLoginPage = location.pathname === "/";
   const isEmployerSignup = location.pathname === "/employer-signup";
+  const isForgotPassword = location.pathname === "/employer/forgot-password";
+
+
 
   return (
     <div className="flex">
       {/* Show appropriate Sidebar based on user type */}
-      {!isLoginPage && !isEmployerSignup && (
+      {!isLoginPage && !isEmployerSignup && !isForgotPassword && (
         <>
           {userType === "admin" && <Sidebar />}
           {userType === "employer" && <EmployerSidebar />}
@@ -75,6 +81,7 @@ function MainApp() {
         <Routes>
           <Route path="/" element={<Login onLogin={authenticateUser} />} />
           <Route path="/employer-signup" element={<EmployerSignup />} />
+          <Route path="/employer/forgot-password" element={<ForgotPassword />} />
 
           {/* Admin Routes - Protect Access */}
           {userType === "admin" ? (
@@ -97,6 +104,7 @@ function MainApp() {
               <Route path="/employer/profile" element={<EmployerProfile employer={userData} />} />
               <Route path="/employer/jobs" element={<EmployerJobs />} />
               <Route path="/employer/post-job" element={<EmployerPostJob />} />
+              <Route path="/employer/forgot-password" element={<ForgotPassword />} />
             </>
           ) : (
             <Route path="/employer/*" element={<Navigate to="/" replace />} />

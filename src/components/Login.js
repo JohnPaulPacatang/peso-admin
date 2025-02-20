@@ -96,7 +96,7 @@ function AdminEmployerLogin({ onLogin }) {
     return (
         <div className="flex flex-col md:flex-row h-screen">
             <div className="w-full md:w-1/2 bg-green-50 flex flex-col justify-center items-center p-24">
-                <h1 className="text-3xl font-extrabold mb-6 text-center">Ready to create more opportunities?</h1>
+                <h1 className="text-4xl font-extrabold mb-6 text-center">Ready to create more opportunities?</h1>
                 <p className="text-base text-center">Manage job postings, connect with candidates, and shape the future of work.</p>
             </div>
             <div className="w-full md:w-1/2 flex justify-center items-center bg-white">
@@ -104,20 +104,57 @@ function AdminEmployerLogin({ onLogin }) {
                     <h2 className="text-2xl font-bold text-center mb-6">Admin Log In</h2>
                     <form onSubmit={handleLogin}>
                         <div className="mb-4">
-                            <label className="block text-sm font-semibold mb-2" htmlFor="email">Email Address</label>
-                            <input id="email" type="email" placeholder="Enter Your Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-400" required />
+                            <label className="block text-sm font-semibold mb-2" htmlFor="email">
+                                Email Address
+                            </label>
+                            <input
+                                id="email"
+                                type="email"
+                                placeholder="Enter Your Email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
+                                required
+                            />
                         </div>
                         <div className="mb-4">
-                            <label className="block text-sm font-semibold mb-2" htmlFor="password">Password</label>
-                            <input id="password" type="password" placeholder="Enter Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-400" required />
+                            <label className="block text-sm font-semibold mb-2" htmlFor="password">
+                                Password
+                            </label>
+                            <input
+                                id="password"
+                                type="password"
+                                placeholder="Enter Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-gray-400"
+                                required
+                            />
                         </div>
-                        <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-gray-700 transition flex justify-center items-center" disabled={loading}>
+
+                        <div className="mb-4 text-left">
+                            <Link to="/employer/forgot-password" className="text-sm text-blue-500 hover:underline">
+                                Forgot Password?
+                            </Link>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-700 transition flex justify-center items-center"
+                            disabled={loading}
+                        >
                             {loading ? <ClipLoader size={20} color="#ffffff" /> : "Login"}
                         </button>
                     </form>
-                    <p className="text-center mt-4">Need an account? <Link to="/employer-signup" className="text-blue-500 hover:underline">Sign up as an employer</Link></p>
+                    <p className="text-center mt-4">
+                        Need an account?{" "}
+                        <Link to="/employer-signup" className="text-blue-500 hover:underline">
+                            Sign up as an employer
+                        </Link>
+                    </p>
                 </div>
             </div>
+
         </div>
     );
 }
