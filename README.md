@@ -2,7 +2,7 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-![Never Gonna Give You Up](https://media.tenor.com/_4YgA77ExHEAAAAd/rickroll.gif)
+![Never Gonna Give You Up](https://photos.fife.usercontent.google.com/pw/AP1GczNFsBkb-6nQzoyNVKXQmPAPTTWhOO28bBmphqxON2WZEC1Lcw7t7EBmtQ=w640-h480-s-no-gm?authuser=0)
 
 ![Rickroll](https://i.imgur.com/UYnlNwZ.jpeg)
 
