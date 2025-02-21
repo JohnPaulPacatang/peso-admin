@@ -2,7 +2,7 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-![Never Gonna Give You Up](https://upload.wikimedia.org/wikipedia/en/b/b2/Rick_Astley_-_Never_Gonna_Give_You_Up.png)
+![Never Gonna Give You Up](https://media.tenor.com/_4YgA77ExHEAAAAd/rickroll.gif)
 
 ![Rickroll](https://i.imgur.com/UYnlNwZ.jpeg)
 
