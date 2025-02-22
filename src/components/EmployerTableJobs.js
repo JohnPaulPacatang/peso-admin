@@ -1,18 +1,45 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
-import { collection, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, doc, deleteDoc, updateDoc, query, where, } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import EditJobsModal from './EditJobsModal';
+import { useNavigate } from "react-router-dom";
 
 const EmployerTableJobs = () => {
+    const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [selectedJob, setSelectedJob] = useState(null);
     const [sortOption, setSortOption] = useState('active');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const dropdownRef = useRef(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [applicantCounts, setApplicantCounts] = useState({});
+
+    useEffect(() => {
+        const fetchApplicantCounts = async () => {
+            const counts = {};
+            for (const job of jobs) {
+                try {
+                    const q = query(
+                        collection(db, 'applications'),
+                        where('job_id', '==', job.id)
+                    );
+                    const snapshot = await getDocs(q);
+                    counts[job.id] = snapshot.size;
+                } catch (error) {
+                    console.error('Error fetching applicant count:', error);
+                    counts[job.id] = 0;
+                }
+            }
+            setApplicantCounts(counts);
+        };
+
+        if (jobs.length > 0) {
+            fetchApplicantCounts();
+        }
+    }, [jobs]);
 
     useEffect(() => {
         const fetchJobs = async () => {
@@ -155,6 +182,7 @@ const EmployerTableJobs = () => {
                         jobCategory: data.job_category,
                         jobDescription: data.job_description,
                         jobType: data.job_type,
+                        isOpen: data.isOpen ?? true,
                         employerUid: data.employerUid || "",
                     };
                 })
@@ -292,7 +320,16 @@ const EmployerTableJobs = () => {
                                     <td className="px-3 py-3 text-sm text-gray-700">
                                         {job.jobPosted ? job.jobPosted.toLocaleDateString('en-US') : 'N/A'}
                                     </td>
-                                    <td className="px-3 py-3 text-sm text-gray-700">{job.applicants}</td>
+                                    <td className="px-3 py-3 text-sm text-gray-700">
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() => navigate(`/employer/jobs/${job.id}/applicants`)}
+                                                className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-1 rounded-full text-xs font-semibold"
+                                            >
+                                                {applicantCounts[job.id] || 0} applicants
+                                            </button>
+                                        </div>
+                                    </td>
                                     <td className="px-3 py-3 text-sm">
                                         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.isOpen
                                             ? 'bg-green-100 text-green-600'

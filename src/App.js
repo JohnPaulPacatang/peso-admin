@@ -16,6 +16,8 @@ import EmployerJobs from "./pages/EmployerJobs";
 import EmployerPostJob from "./pages/EmployerPostJob";
 import EmployerProfile from "./pages/EmployerProfile";
 import ForgotPassword from "./components/ForgotPasswordAdmin";
+import JobApplicantsPage from "./pages/Applicants";
+
 function App() {
   return (
     <Router>
@@ -88,10 +90,12 @@ function MainApp() {
             <>
               <Route path="/admin/dashboard" element={<Dashboard />} />
               <Route path="/admin/jobs" element={<MyJobs />} />
+              <Route path="/admin/jobs/:jobId/applicants" element={<JobApplicantsPage />} /> 
               <Route path="/admin/submit-job" element={<PostJob />} />
               <Route path="/admin/announcement" element={<Announcement />} />
               <Route path="/admin/post-announcement" element={<PostAnnouncement />} />
               <Route path="/admin/manage-account" element={<ManageAccounts />} />
+           
             </>
           ) : (
             <Route path="/admin/*" element={<Navigate to="/" replace />} />
@@ -103,8 +107,10 @@ function MainApp() {
               <Route path="/employer/dashboard" element={<EmployerDashboard />} />
               <Route path="/employer/profile" element={<EmployerProfile employer={userData} />} />
               <Route path="/employer/jobs" element={<EmployerJobs />} />
+              <Route path="/employer/jobs/:jobId/applicants" element={<JobApplicantsPage />} />
               <Route path="/employer/post-job" element={<EmployerPostJob />} />
               <Route path="/employer/forgot-password" element={<ForgotPassword />} />
+      
             </>
           ) : (
             <Route path="/employer/*" element={<Navigate to="/" replace />} />
