@@ -84,8 +84,8 @@ function PostJobForm() {
         job_category: jobCategory,
         job_type: jobType,
         location,
-        salary_min: salaryMin,
-        salary_max: salaryMax,
+        salary_min: Number(salaryMin),    
+        salary_max: Number(salaryMax),    
         skills,
         experience,
         logo: logoUrl,
@@ -231,7 +231,7 @@ function PostJobForm() {
                 type="number"
                 id="salary-min"
                 value={salaryMin}
-                onChange={(e) => setSalaryMin(e.target.value)}
+                onChange={(e) => setSalaryMin(Number(e.target.value))}
                 placeholder="Ex: 50000"
                 className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -245,7 +245,7 @@ function PostJobForm() {
                 type="number"
                 id="salary-max"
                 value={salaryMax}
-                onChange={(e) => setSalaryMax(e.target.value)}
+                onChange={(e) => setSalaryMax(Number(e.target.value))}
                 placeholder="Ex: 100000"
                 className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               />

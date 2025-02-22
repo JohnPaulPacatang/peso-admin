@@ -6,5 +6,3 @@ module.exports = {
   },
   plugins: [],
 }
-
-// never gonna give you up

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
-import { collection, getDocs, doc, deleteDoc, updateDoc} from "firebase/firestore";
+import { collection, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -17,13 +17,14 @@ const EmployerTableJobs = () => {
     useEffect(() => {
         const fetchJobs = async () => {
             try {
-                // Retrieve employer data from localStorage
                 const employerData = JSON.parse(localStorage.getItem("employer"));
-                if (!employerData || !employerData.companyName) {
+                if (!employerData || !employerData.uid || !employerData.companyName) {
                     console.error("Employer data is missing.");
                     return;
                 }
-    
+
+                const { uid: employerUid, companyName } = employerData;
+
                 const querySnapshot = await getDocs(collection(db, 'jobs'));
                 const fetchedJobs = querySnapshot.docs
                     .map((doc) => {
@@ -37,25 +38,26 @@ const EmployerTableJobs = () => {
                             salaryMax: data.salary_max,
                             jobPosted: data.date_posted?.toDate(),
                             applicants: data.skills?.length || 0,
-                            status: data.experience,
+                            isOpen: data.isOpen ?? true,
                             jobCategory: data.job_category,
                             jobDescription: data.job_description,
                             jobType: data.job_type,
                             logo: data.logo,
                             skills: data.skills,
+                            employerUid: data.employerUid || "",
                         };
                     })
-                    .filter((job) => job.company === employerData.companyName); // Filter jobs for this employer
-    
+                    .filter((job) => job.employerUid === employerUid || job.company === companyName);
+
                 setJobs(fetchedJobs);
             } catch (error) {
                 console.error('Error fetching jobs:', error);
             }
         };
-    
+
         fetchJobs();
     }, []);
-    
+
 
     const handleDeleteClick = (job) => {
         setSelectedJob(job);
@@ -121,37 +123,46 @@ const EmployerTableJobs = () => {
             job_category: updatedJob.job_category || "",
             job_description: updatedJob.job_description || "",
             job_type: updatedJob.job_type || "",
-            logo: updatedJob.logo || "",
-            skills: updatedJob.skills || [],
         };
-    
+
         try {
+            // Get employer data from localStorage
+            const employerData = JSON.parse(localStorage.getItem("employer"));
+            if (!employerData || !employerData.uid || !employerData.companyName) {
+                throw new Error("Employer data is missing");
+            }
+            const { uid: employerUid, companyName } = employerData;
+
+            // Update the job
             const jobRef = doc(db, 'jobs', updatedJob.id);
             await updateDoc(jobRef, updatedData);
+
+            // Fetch only the jobs for this employer
             const querySnapshot = await getDocs(collection(db, 'jobs'));
-            const fetchedJobs = querySnapshot.docs.map((doc) => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    title: data.job_title,
-                    company: data.company,
-                    location: data.location,
-                    salaryMin: data.salary_min,
-                    salaryMax: data.salary_max,
-                    jobPosted: data.date_posted?.toDate(),
-                    applicants: data.skills?.length || 0,
-                    status: data.experience,
-                    jobCategory: data.job_category,
-                    jobDescription: data.job_description,
-                    jobType: data.job_type,
-                    logo: data.logo,
-                    skills: data.skills,
-                };
-            });
-         
+            const fetchedJobs = querySnapshot.docs
+                .map((doc) => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        title: data.job_title,
+                        company: data.company,
+                        location: data.location,
+                        salaryMin: data.salary_min,
+                        salaryMax: data.salary_max,
+                        jobPosted: data.date_posted?.toDate(),
+                        applicants: data.skills?.length || 0,
+                        status: data.experience,
+                        jobCategory: data.job_category,
+                        jobDescription: data.job_description,
+                        jobType: data.job_type,
+                        employerUid: data.employerUid || "",
+                    };
+                })
+                .filter((job) => job.employerUid === employerUid || job.company === companyName);
+
             setJobs(fetchedJobs);
             setIsModalOpen(false);
-           
+
             toast.success("Job updated ", {
                 position: "top-right",
                 autoClose: 1500,
@@ -161,6 +172,7 @@ const EmployerTableJobs = () => {
                 draggable: false,
             });
         } catch (error) {
+            console.error('Error updating job:', error);
             toast.error("Error updating job.", {
                 position: "top-right",
                 autoClose: 1500,
@@ -171,7 +183,43 @@ const EmployerTableJobs = () => {
             });
         }
     };
-    
+
+
+    const handleToggleJobStatus = async (job) => {
+        try {
+            const jobRef = doc(db, 'jobs', job.id);
+            await updateDoc(jobRef, {
+                isOpen: !job.isOpen
+            });
+
+            // Update local state
+            setJobs(prevJobs =>
+                prevJobs.map(j =>
+                    j.id === job.id ? { ...j, isOpen: !j.isOpen } : j
+                )
+            );
+
+            toast.success(`Job marked as ${!job.isOpen ? 'open' : 'closed'}`, {
+                position: "top-right",
+                autoClose: 1500,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: false,
+            });
+        } catch (error) {
+            console.error('Error updating job status:', error);
+            toast.error("Failed to update job status", {
+                position: "top-right",
+                autoClose: 1500,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: false,
+                draggable: false,
+            });
+        }
+    };
+
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -246,8 +294,11 @@ const EmployerTableJobs = () => {
                                     </td>
                                     <td className="px-3 py-3 text-sm text-gray-700">{job.applicants}</td>
                                     <td className="px-3 py-3 text-sm">
-                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === 'Active' ? 'bg-green-100 text-green-600' : job.status === 'Pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'}`}>
-                                            {job.status}
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.isOpen
+                                            ? 'bg-green-100 text-green-600'
+                                            : 'bg-red-100 text-red-600'
+                                            }`}>
+                                            {job.isOpen ? 'Open' : 'Closed'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-3xl text-gray-700 relative">
@@ -255,7 +306,7 @@ const EmployerTableJobs = () => {
                                             <AiOutlineEllipsis />
                                         </button>
                                         {selectedJob && selectedJob.id === job.id && (
-                                            <div ref={dropdownRef} className="absolute bg-white border shadow-md mt-2 top-10 rounded-md py-2 w-28 right-1 z-10">
+                                            <div ref={dropdownRef} className="absolute bg-white border shadow-md mt-2 top-10 rounded-md py-2 w-36 right-4 z-10">
                                                 <button onClick={() => handleUpdate(job)} className="flex items-center w-full text-sm text-gray-700 hover:bg-gray-100 py-2 px-4">
                                                     <AiOutlineEdit className="mr-2" />
                                                     Edit
@@ -264,6 +315,14 @@ const EmployerTableJobs = () => {
                                                     <AiOutlineDelete className="mr-2" />
                                                     Delete
                                                 </button>
+                                                <button
+                                                    onClick={() => handleToggleJobStatus(job)}
+                                                    className="flex items-center justify-between w-full text-sm text-blue-600 hover:bg-gray-100 py-2 px-4"
+                                                >
+                                                    <AiOutlineEdit className="mr-2 flex-shrink-0" />
+                                                    <span className="whitespace-nowrap">Mark {job.isOpen ? 'Closed' : 'Open'}</span>
+                                                </button>
+
                                             </div>
                                         )}
                                     </td>

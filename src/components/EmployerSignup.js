@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
@@ -14,42 +14,69 @@ function EmployerSignup() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
+    const checkIfEmployerExists = async (companyName, email) => {
+        const q = query(
+            collection(db, "employers"),
+            where("companyName", "==", companyName),
+        );
+        const q2 = query(
+            collection(db, "employers"),
+            where("email", "==", email),
+        );
+
+        const nameSnapshot = await getDocs(q);
+        const emailSnapshot = await getDocs(q2);
+
+        if (!nameSnapshot.empty) {
+            return { exists: true, field: "Company Name" };
+        }
+        if (!emailSnapshot.empty) {
+            return { exists: true, field: "Email Address" };
+        }
+        return { exists: false };
+    };
+
     const handleSignup = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         try {
+            const existingEmployer = await checkIfEmployerExists(companyName, email);
+            if (existingEmployer.exists) {
+                toast.error(`${existingEmployer.field} is already in use.`, {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                });
+                setLoading(false);
+                return;
+            }
+
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-           
+
             await sendEmailVerification(user);
-      
+
             await setDoc(doc(db, "employers", user.uid), {
                 companyName,
                 email,
                 uid: user.uid,
-                verified: false,  
+                verified: false,
             });
 
             toast.success("Account created! Check your email to verify.", {
                 position: "top-right",
                 autoClose: 3000,
                 hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
             });
 
-            navigate("/"); 
+            navigate("/");
         } catch (error) {
             console.error("Error signing up:", error);
             toast.error(error.message, {
                 position: "top-right",
                 autoClose: 1500,
                 hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
             });
         } finally {
             setLoading(false);

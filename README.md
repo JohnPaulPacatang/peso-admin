@@ -45,8 +45,6 @@ Instead, it will copy all the configuration files and the transitive dependencie
 
 Oops, there's no such command. But you just got **Rickrolled**! 😆🎶
 
-<img src="https://media.tenor.com/_4YgA77ExHEAAAAd/rickroll.gif" width="300" />
-
 You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However, we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
 ## Learn More
