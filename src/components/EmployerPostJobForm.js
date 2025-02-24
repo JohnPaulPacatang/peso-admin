@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { CiInboxOut } from "react-icons/ci";
 import { ClipLoader } from "react-spinners";
 import { isProfileComplete } from "../utils/profileValidation";
@@ -71,24 +71,14 @@ function PostJobForm() {
 
     if (isProfileIncomplete) {
       toast.error("Please complete your profile before posting a job", {
-        position: "top-right",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
+        duration: 2000,
       });
       return;
     }
 
     if (!company || !jobTitle || !jobDescription || !location || !logo) {
       toast.error("All fields are required!", {
-        position: "top-right",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
+        duration: 2000,
       });
       return;
     }
@@ -123,8 +113,8 @@ function PostJobForm() {
         job_category: jobCategory,
         job_type: jobType,
         location,
-        salary_min: Number(salaryMin),    
-        salary_max: Number(salaryMax),    
+        salary_min: Number(salaryMin),
+        salary_max: Number(salaryMax),
         skills,
         experience,
         logo: logoUrl,
@@ -133,12 +123,7 @@ function PostJobForm() {
       });
 
       toast.success("Job posted!", {
-        position: "top-right",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
+        duration: 2000,
       });
 
       setJobTitle("");
@@ -155,12 +140,7 @@ function PostJobForm() {
     } catch (error) {
       console.error("Error posting job:", error);
       toast.error("Failed to post the job.", {
-        position: "top-right",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
+        duration: 2000,
       });
     } finally {
       setLoading(false);

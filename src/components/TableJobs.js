@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, where } from "firebase/firestore";
 import { db } from "../firebase";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import EditJobsModal from './EditJobsModal';
 import { useNavigate } from "react-router-dom";
 import jsPDF from 'jspdf';
@@ -96,32 +95,26 @@ const Jobs = () => {
     };
 
     const confirmDelete = async () => {
-        try {
-            await deleteDoc(doc(db, 'jobs', selectedJob.id));
+        const deletePromise = new Promise(async (resolve, reject) => {
+            try {
+                await deleteDoc(doc(db, "jobs", selectedJob.id));
 
-            setJobs(prevJobs => prevJobs.filter(job => job.id !== selectedJob.id));
+                setJobs(prevJobs => prevJobs.filter(job => job.id !== selectedJob.id));
 
-            setIsDeleteConfirmOpen(false);
-            setSelectedJob(null);
+                setIsDeleteConfirmOpen(false);
+                setSelectedJob(null);
 
-            toast.success("Deleted successfully!", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        } catch (error) {
-            toast.error("Failed to delete!", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        }
+                resolve("Deleted successfully!");
+            } catch (error) {
+                reject("Failed to delete!");
+            }
+        });
+
+        toast.promise(deletePromise, {
+            loading: "Deleting job, please wait...",
+            success: "Deleted successfully!",
+            error: "Failed to delete!",
+        });
     };
 
     const cancelDelete = () => {
@@ -158,89 +151,78 @@ const Jobs = () => {
             // skills: updatedJob.skills || [],
         };
 
-        try {
-            const jobRef = doc(db, 'jobs', updatedJob.id);
-            await updateDoc(jobRef, updatedData);
-            const querySnapshot = await getDocs(collection(db, 'jobs'));
-            const fetchedJobs = querySnapshot.docs.map((doc) => {
-                const data = doc.data();
-                return {
-                    id: doc.id,
-                    title: data.job_title,
-                    company: data.company,
-                    location: data.location,
-                    salaryMin: data.salary_min,
-                    salaryMax: data.salary_max,
-                    jobPosted: data.date_posted ? data.date_posted.toDate() : null,
-                    applicants: data.skills?.length || 0,
-                    experience: data.experience,
-                    jobCategory: data.job_category,
-                    jobDescription: data.job_description,
-                    jobType: data.job_type,
-                    isOpen: data.isOpen ?? true,
-                    // logo: data.logo,
-                    // skills: data.skills,
-                };
-            });
+        const updatePromise = new Promise(async (resolve, reject) => {
+            try {
+                const jobRef = doc(db, "jobs", updatedJob.id);
+                await updateDoc(jobRef, updatedData);
+                const querySnapshot = await getDocs(collection(db, "jobs"));
+                const fetchedJobs = querySnapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        title: data.job_title,
+                        company: data.company,
+                        location: data.location,
+                        salaryMin: data.salary_min,
+                        salaryMax: data.salary_max,
+                        jobPosted: data.date_posted ? data.date_posted.toDate() : null,
+                        applicants: data.skills?.length || 0,
+                        experience: data.experience,
+                        jobCategory: data.job_category,
+                        jobDescription: data.job_description,
+                        jobType: data.job_type,
+                        isOpen: data.isOpen ?? true,
+                        // logo: data.logo,
+                        // skills: data.skills,
+                    };
+                });
 
-            fetchedJobs.sort((a, b) => (b.jobPosted ? b.jobPosted.getTime() : 0) - (a.jobPosted ? a.jobPosted.getTime() : 0));
+                fetchedJobs.sort((a, b) => (b.jobPosted ? b.jobPosted.getTime() : 0) - (a.jobPosted ? a.jobPosted.getTime() : 0));
 
-            setJobs(fetchedJobs);
-            setIsModalOpen(false);
+                setJobs(fetchedJobs);
+                setIsModalOpen(false);
+                resolve("Job updated");
+            } catch (error) {
+                reject("Error updating job.");
+            }
+        });
 
-            toast.success("Job updated ", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        } catch (error) {
-            toast.error("Error updating job.", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        }
+        toast.promise(updatePromise, {
+            loading: "Updating job, please wait...",
+            success: "Job updated",
+            error: "Error updating job.",
+        });
     };
+
 
     const handleToggleJobStatus = async (job) => {
-        try {
-            const jobRef = doc(db, 'jobs', job.id);
-            await updateDoc(jobRef, {
-                isOpen: !job.isOpen
-            });
+        const togglePromise = new Promise(async (resolve, reject) => {
+            try {
+                const jobRef = doc(db, "jobs", job.id);
+                await updateDoc(jobRef, {
+                    isOpen: !job.isOpen,
+                });
 
-            setJobs(prevJobs =>
-                prevJobs.map(j =>
-                    j.id === job.id ? { ...j, isOpen: !j.isOpen } : j
-                )
-            );
+                setJobs((prevJobs) =>
+                    prevJobs.map((j) =>
+                        j.id === job.id ? { ...j, isOpen: !j.isOpen } : j
+                    )
+                );
 
-            toast.success(`Job marked as ${!job.isOpen ? 'open' : 'closed'}`, {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        } catch (error) {
-            console.error('Error updating job status:', error);
-            toast.error("Failed to update job status", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        }
+                resolve(`Job marked as ${!job.isOpen ? "open" : "closed"}`);
+            } catch (error) {
+                console.error("Error updating job status:", error);
+                reject("Failed to update job status");
+            }
+        });
+
+        toast.promise(togglePromise, {
+            loading: "Updating job status, please wait...",
+            success: "Job status updated successfully!",
+            error: "Failed to update job status.",
+        });
     };
+
 
     const handleExportPDF = () => {
         const doc = new jsPDF('portrait', 'mm', 'a4');

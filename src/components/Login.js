@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { db, auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { collection, query, where, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 
@@ -17,7 +17,6 @@ function AdminEmployerLogin({ onLogin }) {
         setLoading(true);
 
         try {
-            // Clear any existing login data
             localStorage.removeItem("admin");
             localStorage.removeItem("employer");
 
@@ -31,23 +30,28 @@ function AdminEmployerLogin({ onLogin }) {
                 if (adminData.password === password) {
                     const adminInfo = { role: "admin", email };
                     localStorage.setItem("admin", JSON.stringify(adminInfo));
-                    toast.success("Admin logged in!", { autoClose: 2000 });
-                    onLogin(); // Trigger the authentication update
+                    toast.success("Admin logged in!", {
+                        duration: 2000,
+                    });
+                    onLogin();
                     navigate("/admin/dashboard");
-                    return; // Exit after successful admin login
+                    return;
                 } else {
-                    toast.error("Invalid admin credentials.", { autoClose: 1500 });
+                    toast.error("Invalid admin credentials.", {
+                        duration: 2000,
+                    });
                     setLoading(false);
                     return;
                 }
             }
 
-            // If not admin, try employer login
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
             if (!user.emailVerified) {
-                toast.error("Please verify your email.", { autoClose: 2000 });
+                toast.error("Please verify your email.", {
+                    duration: 2000,
+                });
                 setLoading(false);
                 return;
             }
@@ -79,15 +83,22 @@ function AdminEmployerLogin({ onLogin }) {
                 };
 
                 localStorage.setItem("employer", JSON.stringify(employerInfo));
-                toast.success("Employer logged in!", { autoClose: 2000 });
-                onLogin(); // Trigger the authentication update
+                toast.success("Employer logged in!", {
+                    duration: 2000,
+                });
+                onLogin();
                 navigate("/employer/dashboard");
             } else {
-                toast.error("Employer not found.", { autoClose: 2000 });
+                toast.error("Employer not found.", {
+                    duration: 2000,
+                });
+
             }
         } catch (error) {
             console.error("Login error:", error);
-            toast.error("Login failed. Check credentials.", { autoClose: 1500 });
+            toast.error("Login failed. Check credentials.", {
+                duration: 2000,
+            });
         } finally {
             setLoading(false);
         }
@@ -154,7 +165,6 @@ function AdminEmployerLogin({ onLogin }) {
                     </p>
                 </div>
             </div>
-
         </div>
     );
 }

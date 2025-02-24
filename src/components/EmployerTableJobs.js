@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, where, } from "firebase/firestore";
 import { db } from "../firebase";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-hot-toast";
 import EditJobsModal from './EditJobsModal';
 import { useNavigate } from "react-router-dom";
 import jsPDF from 'jspdf';
@@ -95,7 +94,6 @@ const EmployerTableJobs = () => {
                 setJobs(fetchedJobs);
             } catch (error) {
                 console.error('Error fetching jobs:', error);
-                toast.error("Error fetching jobs");
             }
         };
 
@@ -109,33 +107,25 @@ const EmployerTableJobs = () => {
     };
 
     const confirmDelete = async () => {
-        try {
-            await deleteDoc(doc(db, 'jobs', selectedJob.id));
+        const deletePromise = new Promise(async (resolve, reject) => {
+            try {
+                await deleteDoc(doc(db, 'jobs', selectedJob.id));
+                setJobs(prevJobs => prevJobs.filter(job => job.id !== selectedJob.id));
+                setIsDeleteConfirmOpen(false);
+                setSelectedJob(null);
+                resolve("Deleted successfully!");
+            } catch (error) {
+                reject("Failed to delete!");
+            }
+        });
 
-            setJobs(prevJobs => prevJobs.filter(job => job.id !== selectedJob.id));
-
-            setIsDeleteConfirmOpen(false);
-            setSelectedJob(null);
-
-            toast.success("Deleted successfully!", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        } catch (error) {
-            toast.error("Failed to delete!", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        }
+        toast.promise(deletePromise, {
+            loading: "Deleting...",
+            success: "Deleted successfully!",
+            error: "Failed to delete!",
+        });
     };
+
 
     const cancelDelete = () => {
         setIsDeleteConfirmOpen(false);
@@ -169,102 +159,90 @@ const EmployerTableJobs = () => {
             job_type: updatedJob.job_type || "",
         };
 
-        try {
-            // Get employer data from localStorage
-            const employerData = JSON.parse(localStorage.getItem("employer"));
-            if (!employerData || !employerData.uid || !employerData.companyName) {
-                throw new Error("Employer data is missing");
+        const jobUpdatePromise = new Promise(async (resolve, reject) => {
+            try {
+                // Get employer data from localStorage
+                const employerData = JSON.parse(localStorage.getItem("employer"));
+                if (!employerData || !employerData.uid || !employerData.companyName) {
+                    throw new Error("Employer data is missing");
+                }
+                const { uid: employerUid, companyName } = employerData;
+
+                // Update the job in Firestore
+                const jobRef = doc(db, 'jobs', updatedJob.id);
+                await updateDoc(jobRef, updatedData);
+
+                // Fetch updated jobs for the employer
+                const querySnapshot = await getDocs(collection(db, 'jobs'));
+                const fetchedJobs = querySnapshot.docs
+                    .map((doc) => {
+                        const data = doc.data();
+                        return {
+                            id: doc.id,
+                            title: data.job_title,
+                            company: data.company,
+                            location: data.location,
+                            salaryMin: data.salary_min,
+                            salaryMax: data.salary_max,
+                            jobPosted: data.date_posted?.toDate() || new Date(0),
+                            applicants: data.skills?.length || 0,
+                            experience: data.experience,
+                            jobCategory: data.job_category,
+                            jobDescription: data.job_description,
+                            jobType: data.job_type,
+                            isOpen: data.isOpen ?? true,
+                            employerUid: data.employerUid || "",
+                        };
+                    })
+                    .filter((job) => job.employerUid === employerUid || job.company === companyName)
+                    .sort((a, b) => b.jobPosted - a.jobPosted);
+
+                setJobs(fetchedJobs);
+                setIsModalOpen(false);
+                resolve("Job updated successfully!");
+            } catch (error) {
+                console.error("Error updating job:", error);
+                reject("Error updating job.");
             }
-            const { uid: employerUid, companyName } = employerData;
+        });
 
-            // Update the job
-            const jobRef = doc(db, 'jobs', updatedJob.id);
-            await updateDoc(jobRef, updatedData);
-
-            // Fetch only the jobs for this employer
-            const querySnapshot = await getDocs(collection(db, 'jobs'));
-            const fetchedJobs = querySnapshot.docs
-                .map((doc) => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        title: data.job_title,
-                        company: data.company,
-                        location: data.location,
-                        salaryMin: data.salary_min,
-                        salaryMax: data.salary_max,
-                        jobPosted: data.date_posted?.toDate() || new Date(0),
-                        applicants: data.skills?.length || 0,
-                        experience: data.experience,
-                        jobCategory: data.job_category,
-                        jobDescription: data.job_description,
-                        jobType: data.job_type,
-                        isOpen: data.isOpen ?? true,
-                        employerUid: data.employerUid || "",
-                    };
-                })
-                .filter((job) => job.employerUid === employerUid || job.company === companyName)
-                .sort((a, b) => b.jobPosted - a.jobPosted);
-
-            setJobs(fetchedJobs);
-            setIsModalOpen(false);
-
-            toast.success("Job updated ", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        } catch (error) {
-            console.error('Error updating job:', error);
-            toast.error("Error updating job.", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        }
+        toast.promise(jobUpdatePromise, {
+            loading: "Updating job...",
+            success: "Job updated successfully!",
+            error: "Error updating job.",
+        });
     };
 
 
     const handleToggleJobStatus = async (job) => {
-        try {
-            const jobRef = doc(db, 'jobs', job.id);
-            await updateDoc(jobRef, {
-                isOpen: !job.isOpen
-            });
+        const statusChangePromise = new Promise(async (resolve, reject) => {
+            try {
+                const jobRef = doc(db, "jobs", job.id);
+                await updateDoc(jobRef, {
+                    isOpen: !job.isOpen,
+                });
 
-            // Update local state
-            setJobs(prevJobs =>
-                prevJobs.map(j =>
-                    j.id === job.id ? { ...j, isOpen: !j.isOpen } : j
-                )
-            );
+                // Update local state
+                setJobs((prevJobs) =>
+                    prevJobs.map((j) =>
+                        j.id === job.id ? { ...j, isOpen: !j.isOpen } : j
+                    )
+                );
 
-            toast.success(`Job marked as ${!job.isOpen ? 'open' : 'closed'}`, {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        } catch (error) {
-            console.error('Error updating job status:', error);
-            toast.error("Failed to update job status", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        }
+                resolve(`Job marked as ${!job.isOpen ? "open" : "closed"}`);
+            } catch (error) {
+                console.error("Error updating job status:", error);
+                reject("Failed to update job status");
+            }
+        });
+
+        toast.promise(statusChangePromise, {
+            loading: "Updating job status...",
+            success: "Job status updated successfully!",
+            error: "Failed to update job status",
+        });
     };
+
 
     const handleExportPDF = () => {
         const doc = new jsPDF('portrait', 'mm', 'a4');

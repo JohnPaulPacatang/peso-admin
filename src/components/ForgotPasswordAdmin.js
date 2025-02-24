@@ -2,10 +2,9 @@ import { useState } from "react";
 import { auth, db } from "../firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { FaEnvelope, FaLock } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import "react-toastify/dist/ReactToastify.css";
 
 function ForgotPassword() {
     const [email, setEmail] = useState("");
@@ -16,23 +15,29 @@ function ForgotPassword() {
         setLoading(true);
 
         try {
-            // Check if the email exists in the employers' collection
             const q = query(collection(db, "employers"), where("email", "==", email));
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-                toast.error("No account found with this email. Please sign up first.", { position: "top-center", autoClose: 3000 });
+                toast.error("No account found with this email. Please sign up first.", {
+                    duration: 2000,
+                });
             } else {
                 await sendPasswordResetEmail(auth, email);
-                toast.success(`Password reset link sent to ${email}. Check your inbox.`, { position: "top-center", autoClose: 3000 });
+                toast.success(`Password reset link sent to ${email}. Check your inbox.`, {
+                    duration: 2000,
+                });
                 setEmail("");
             }
         } catch (error) {
-            toast.error("Error: " + error.message, { position: "top-center", autoClose: 3000 });
+            toast.error("Error: " + error.message, {
+                duration: 2000,
+            });
         }
 
         setLoading(false);
     };
+    
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-green-50">

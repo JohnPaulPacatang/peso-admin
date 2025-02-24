@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { db } from '../firebase';
 import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from "react-hot-toast";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -57,32 +56,31 @@ const ManageAccountsTable = () => {
     };
 
     const confirmDelete = async () => {
-        if (accountToDelete) {
+        if (!accountToDelete) return;
+
+        const deletePromise = new Promise(async (resolve, reject) => {
             try {
-                await deleteDoc(doc(db, 'employers', accountToDelete.id));
+                await deleteDoc(doc(db, "employers", accountToDelete.id));
                 setAccounts(accounts.filter(acc => acc.id !== accountToDelete.id));
                 setIsDeleteConfirmOpen(false);
                 setAccountToDelete(null);
-                toast.success('Deleted successfully!', {
-                    position: "top-right",
-                    autoClose: 1500,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: false,
-                    draggable: false,
-                });
+                resolve("The employer account has been successfully deleted!");
             } catch (error) {
-                console.error('Error deleting:  ', error);
-                toast.error('Error deleting.', {
-                    position: "top-right",
-                    autoClose: 1500,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: false,
-                    draggable: false,
-                });
+                console.error("Error deleting: ", error);
+                reject("Failed to delete the employer account. Please try again.");
             }
-        }
+        });
+
+        toast.promise(deletePromise, {
+            loading: "Deleting the account, please wait...",
+            success: "Deleted successfully!",
+            error: "Error deleting.",
+        });
+    };
+
+    const cancelDelete = () => {
+        setIsDeleteConfirmOpen(false);
+        setAccountToDelete(null);
     };
 
     const handleInputChange = (e) => {
@@ -95,44 +93,34 @@ const ManageAccountsTable = () => {
 
     const handleSubmitEdit = async (e) => {
         e.preventDefault();
-        try {
-            const accountRef = doc(db, 'employers', editingAccount.id);
-            await updateDoc(accountRef, {
-                contact_person_name: editingAccount.contact_person_name,
-                contact_person_email: editingAccount.contact_person_email,
-                company_address: editingAccount.company_address,
-            });
 
-            // Update local state
-            setAccounts(accounts.map(acc =>
-                acc.id === editingAccount.id ? { ...acc, ...editingAccount } : acc
-            ));
+        const updatePromise = new Promise(async (resolve, reject) => {
+            try {
+                const accountRef = doc(db, "employers", editingAccount.id);
+                await updateDoc(accountRef, {
+                    contact_person_name: editingAccount.contact_person_name,
+                    contact_person_email: editingAccount.contact_person_email,
+                    company_address: editingAccount.company_address,
+                });
 
-            setIsEditModalOpen(false);
-            toast.success('Updated successfully!', {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        } catch (error) {
-            console.error('Error updating account:', error);
-            toast.error('Error updating account.', {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        }
-    };
+                // Update local state
+                setAccounts(accounts.map(acc =>
+                    acc.id === editingAccount.id ? { ...acc, ...editingAccount } : acc
+                ));
 
-    const cancelDelete = () => {
-        setIsDeleteConfirmOpen(false);
-        setAccountToDelete(null);
+                setIsEditModalOpen(false);
+                resolve("Updated successfully!");
+            } catch (error) {
+                console.error("Error updating account:", error);
+                reject("Error updating account.");
+            }
+        });
+
+        toast.promise(updatePromise, {
+            loading: "Updating account, please wait...",
+            success: "Updated successfully!",
+            error: "Error updating account.",
+        });
     };
 
     const truncateText = (text, maxLength = 30) => {
@@ -204,7 +192,6 @@ const ManageAccountsTable = () => {
 
     return (
         <div className="py-10 px-4 sm:px-6 lg:px-10">
-            <ToastContainer />
             <div className="max-w-8xl mx-auto py-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Manage Employers</h1>

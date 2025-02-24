@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import { auth, db } from "../firebase";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { toast } from "react-toastify";
 import { useNavigate, Link } from "react-router-dom";
-import "react-toastify/dist/ReactToastify.css";
 import { ClipLoader } from "react-spinners";
+import { toast } from "react-hot-toast";
 
 function EmployerSignup() {
     const [companyName, setCompanyName] = useState("");
@@ -40,48 +39,43 @@ function EmployerSignup() {
         e.preventDefault();
         setLoading(true);
 
-        try {
-            const existingEmployer = await checkIfEmployerExists(companyName, email);
-            if (existingEmployer.exists) {
-                toast.error(`${existingEmployer.field} is already in use.`, {
-                    position: "top-right",
-                    autoClose: 3000,
-                    hideProgressBar: false,
+        const signupPromise = new Promise(async (resolve, reject) => {
+            try {
+                const existingEmployer = await checkIfEmployerExists(companyName, email);
+                if (existingEmployer.exists) {
+                    reject(`${existingEmployer.field} is already in use.`);
+                    return;
+                }
+
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await sendEmailVerification(user);
+
+                await setDoc(doc(db, "employers", user.uid), {
+                    companyName,
+                    email,
+                    uid: user.uid,
+                    verified: false,
                 });
+
+                resolve("Account created! Check your email to verify.");
+                navigate("/");
+            } catch (error) {
+                console.error("Error signing up:", error);
+                reject(error.message);
+            } finally {
                 setLoading(false);
-                return;
             }
+        });
 
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-
-            await sendEmailVerification(user);
-
-            await setDoc(doc(db, "employers", user.uid), {
-                companyName,
-                email,
-                uid: user.uid,
-                verified: false,
-            });
-
-            toast.success("Account created! Check your email to verify.", {
-                position: "top-right",
-                autoClose: 3000,
-                hideProgressBar: false,
-            });
-
-            navigate("/");
-        } catch (error) {
-            console.error("Error signing up:", error);
-            toast.error(error.message, {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-            });
-        } finally {
-            setLoading(false);
-        }
+        toast.promise(signupPromise, {
+            loading: "Creating account...",
+            success: "Account created! Check your email to verify.", 
+            error: (err) => err, 
+        });
     };
+
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-green-50">

@@ -2,10 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineEllipsis } from "react-icons/ai";
 import { collection, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
-import "react-toastify/dist/ReactToastify.css";
 import EditAnnouncementModal from "./EditAnnouncementModal";
 
 const TableAnnouncements = () => {
@@ -58,36 +57,30 @@ const TableAnnouncements = () => {
     };
 
     const confirmDelete = async () => {
-        try {
-            const docRef = doc(db, "announcements", announcementToDelete.id);
-            await deleteDoc(docRef);
+        const deletePromise = new Promise(async (resolve, reject) => {
+            try {
+                const docRef = doc(db, "announcements", announcementToDelete.id);
+                await deleteDoc(docRef);
 
-            toast.success("Deleted successfully!", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
+                setAnnouncements((prevAnnouncements) =>
+                    prevAnnouncements.filter((announcement) => announcement.id !== announcementToDelete.id)
+                );
 
-            setAnnouncements((prevAnnouncements) =>
-                prevAnnouncements.filter((announcement) => announcement.id !== announcementToDelete.id)
-            );
+                setIsDeleteConfirmOpen(false);
+                resolve("Deleted successfully!");
+            } catch (error) {
+                setIsDeleteConfirmOpen(false);
+                reject("Failed to delete!");
+            }
+        });
 
-            setIsDeleteConfirmOpen(false);
-        } catch (error) {
-            toast.error("Failed to delete!", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-            setIsDeleteConfirmOpen(false);
-        }
+        toast.promise(deletePromise, {
+            loading: "Deleting announcement, please wait...",
+            success: "Deleted successfully!",
+            error: "Failed to delete!",
+        });
     };
+
 
     const cancelDelete = () => {
         setIsDeleteConfirmOpen(false);
@@ -105,36 +98,31 @@ const TableAnnouncements = () => {
     };
 
     const handleUpdate = async (updatedAnnouncement) => {
-        try {
-            const docRef = doc(db, "announcements", updatedAnnouncement.id);
-            await updateDoc(docRef, updatedAnnouncement);
+        const updatePromise = new Promise(async (resolve, reject) => {
+            try {
+                const docRef = doc(db, "announcements", updatedAnnouncement.id);
+                await updateDoc(docRef, updatedAnnouncement);
 
-            toast.success("Updated successfully!", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
+                setAnnouncements((prevAnnouncements) =>
+                    prevAnnouncements.map((announcement) =>
+                        announcement.id === updatedAnnouncement.id ? updatedAnnouncement : announcement
+                    )
+                );
 
-            setAnnouncements((prevAnnouncements) =>
-                prevAnnouncements.map((announcement) =>
-                    announcement.id === updatedAnnouncement.id ? updatedAnnouncement : announcement
-                )
-            );
-            handleModalClose();
-        } catch (error) {
-            toast.error("Failed to update", {
-                position: "top-right",
-                autoClose: 1500,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: false,
-                draggable: false,
-            });
-        }
+                handleModalClose();
+                resolve("Updated successfully!");
+            } catch (error) {
+                reject("Failed to update");
+            }
+        });
+
+        toast.promise(updatePromise, {
+            loading: "Updating announcement, please wait...",
+            success: "Updated successfully!",
+            error: "Failed to update",
+        });
     };
+
 
     const handleExportPDF = () => {
         const doc = new jsPDF();
