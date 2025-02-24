@@ -199,17 +199,17 @@ const Jobs = () => {
         const togglePromise = new Promise(async (resolve, reject) => {
             try {
                 const jobRef = doc(db, "jobs", job.id);
-                await updateDoc(jobRef, {
-                    isOpen: !job.isOpen,
-                });
+                const newStatus = !job.isOpen; // Determine new status
+
+                await updateDoc(jobRef, { isOpen: newStatus });
 
                 setJobs((prevJobs) =>
                     prevJobs.map((j) =>
-                        j.id === job.id ? { ...j, isOpen: !j.isOpen } : j
+                        j.id === job.id ? { ...j, isOpen: newStatus } : j
                     )
                 );
 
-                resolve(`Job marked as ${!job.isOpen ? "open" : "closed"}`);
+                resolve(`Job marked as ${newStatus ? "Open" : "Closed"}`);
             } catch (error) {
                 console.error("Error updating job status:", error);
                 reject("Failed to update job status");
@@ -218,10 +218,11 @@ const Jobs = () => {
 
         toast.promise(togglePromise, {
             loading: "Updating job status, please wait...",
-            success: "Job status updated successfully!",
+            success: (msg) => msg, // Use the resolved message dynamically
             error: "Failed to update job status.",
         });
     };
+
 
 
     const handleExportPDF = () => {

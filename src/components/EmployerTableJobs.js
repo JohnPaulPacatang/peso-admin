@@ -215,33 +215,33 @@ const EmployerTableJobs = () => {
 
 
     const handleToggleJobStatus = async (job) => {
-        const statusChangePromise = new Promise(async (resolve, reject) => {
+        const togglePromise = new Promise(async (resolve, reject) => {
             try {
                 const jobRef = doc(db, "jobs", job.id);
-                await updateDoc(jobRef, {
-                    isOpen: !job.isOpen,
-                });
+                const newStatus = !job.isOpen; 
 
-                // Update local state
+                await updateDoc(jobRef, { isOpen: newStatus });
+
                 setJobs((prevJobs) =>
                     prevJobs.map((j) =>
-                        j.id === job.id ? { ...j, isOpen: !j.isOpen } : j
+                        j.id === job.id ? { ...j, isOpen: newStatus } : j
                     )
                 );
 
-                resolve(`Job marked as ${!job.isOpen ? "open" : "closed"}`);
+                resolve(`Job marked as ${newStatus ? "Open" : "Closed"}`);
             } catch (error) {
                 console.error("Error updating job status:", error);
                 reject("Failed to update job status");
             }
         });
 
-        toast.promise(statusChangePromise, {
-            loading: "Updating job status...",
-            success: "Job status updated successfully!",
-            error: "Failed to update job status",
+        toast.promise(togglePromise, {
+            loading: "Updating job status, please wait...",
+            success: (msg) => msg,
+            error: "Failed to update job status.",
         });
     };
+
 
 
     const handleExportPDF = () => {
