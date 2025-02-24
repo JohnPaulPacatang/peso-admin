@@ -3,6 +3,8 @@ import { AiOutlineEllipsis } from "react-icons/ai";
 import { collection, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 import "react-toastify/dist/ReactToastify.css";
 import EditAnnouncementModal from "./EditAnnouncementModal";
 
@@ -25,6 +27,12 @@ const TableAnnouncements = () => {
                     id: doc.id,
                     ...doc.data(),
                 }));
+
+                announcementsData.sort((a, b) => {
+                    if (!a.date || !b.date) return 0;
+                    return b.date.toDate() - a.date.toDate();
+                });
+
                 setAnnouncements(announcementsData);
             } catch (error) {
                 console.error("Error fetching announcements:", error);
@@ -33,6 +41,7 @@ const TableAnnouncements = () => {
 
         fetchAnnouncements();
     }, []);
+
 
     const filteredAnnouncements = announcements.filter((announcement) =>
         announcement.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -65,7 +74,7 @@ const TableAnnouncements = () => {
             setAnnouncements((prevAnnouncements) =>
                 prevAnnouncements.filter((announcement) => announcement.id !== announcementToDelete.id)
             );
-            
+
             setIsDeleteConfirmOpen(false);
         } catch (error) {
             toast.error("Failed to delete!", {
@@ -127,6 +136,57 @@ const TableAnnouncements = () => {
         }
     };
 
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const marginX = 10;
+
+        // Title
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Announcements Report', pageWidth / 2, 20, { align: 'center' });
+
+        // Date
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
+
+        // Table Headers & Data
+        const headers = [['Title', 'Description', 'Location', 'Date']];
+        const tableData = announcements.map(ann => [
+            ann.title,
+            ann.description,
+            ann.location,
+            ann.date ? ann.date.toDate().toLocaleDateString() : 'N/A'
+        ]);
+
+
+        doc.autoTable({
+            head: headers,
+            body: tableData,
+            startY: 35,
+            tableWidth: 'auto',
+            styles: {
+                fontSize: 7,
+                cellPadding: 3,
+                overflow: 'linebreak'
+            },
+            headStyles: {
+                fillColor: [52, 73, 94],
+                textColor: 255,
+                fontSize: 8,
+                fontStyle: 'bold'
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245]
+            },
+            margin: { left: marginX, right: marginX, top: 35 }
+        });
+
+
+        window.open(doc.output('bloburl'), '_blank');
+    };
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (isDeleteConfirmOpen) return;
@@ -156,6 +216,12 @@ const TableAnnouncements = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="border border-gray-300 px-4 py-2 rounded-3xl text-sm"
                         />
+                        <button
+                            onClick={handleExportPDF}
+                            className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
+                        >
+                            Export PDF
+                        </button>
                     </div>
                 </div>
             </div>

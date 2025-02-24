@@ -3,6 +3,8 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const JobApplicants = () => {
     const [applications, setApplications] = useState([]);
@@ -32,7 +34,12 @@ const JobApplicants = () => {
                         timestamp: data.timestamp?.toDate(),
                     };
                 });
-                setApplications(fetchedApplications);
+
+                const sortedApplications = fetchedApplications.sort((a, b) =>
+                    b.timestamp - a.timestamp
+                );
+
+                setApplications(sortedApplications);
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching applications:', error);
@@ -44,6 +51,57 @@ const JobApplicants = () => {
             fetchApplications();
         }
     }, [jobId]);
+
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const marginX = 10;
+
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Job Applicants Report', pageWidth / 2, 20, { align: 'center' });
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
+
+        const headers = [['Name', 'Email', 'Contact', 'Address', 'Application Date']];
+        const tableData = applications.map(app => [
+            app.applicantName,
+            app.applicantEmail,
+            app.applicantContact,
+            app.applicantAddress,
+            app.timestamp ? format(app.timestamp, 'MMM dd, yyyy') : 'N/A',
+            // app.resumeLink || 'N/A'
+        ]);
+
+        doc.autoTable({
+            head: headers,
+            body: tableData,
+            startY: 35,
+            tableWidth: 'auto',
+            styles: {
+                fontSize: 7,
+                cellPadding: 3,
+                overflow: 'linebreak'
+            },
+            headStyles: {
+                fillColor: [52, 73, 94],
+                textColor: 255,
+                fontSize: 8,
+                fontStyle: 'bold'
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245]
+            },
+            margin: { left: marginX, right: marginX, top: 35 }
+        });
+
+
+        window.open(doc.output('bloburl'), '_blank');
+    };
+
 
     if (loading) {
         return (
@@ -58,12 +116,20 @@ const JobApplicants = () => {
             <div className="max-w-8xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Job Applicants</h1>
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="bg-blue-500 text-white hover:bg-blue-700 py-2 px-4 rounded-full text-sm font-semibold"
-                    >
-                        Back to Jobs
-                    </button>
+                    <div className="space-x-4">
+                        <button
+                            onClick={handleExportPDF}
+                            className="bg-green-500 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
+                        >
+                            Export PDF
+                        </button>
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="bg-blue-500 text-white hover:bg-blue-700 py-2 px-4 rounded-full text-sm font-semibold"
+                        >
+                            Back to Jobs
+                        </button>
+                    </div>
                 </div>
 
                 {applications.length === 0 ? (
@@ -98,19 +164,13 @@ const JobApplicants = () => {
                                                     {application.applicantEmail}
                                                 </a>
                                             </td>
-
                                             <td className="px-4 py-3 text-sm text-gray-700">{application.applicantContact}</td>
                                             <td className="px-4 py-3 text-sm text-gray-700">{application.applicantAddress}</td>
                                             <td className="px-4 py-3 text-sm text-gray-700">
                                                 {application.timestamp ? format(application.timestamp, 'MMM dd, yyyy') : 'N/A'}
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-700">
-                                                <a
-                                                    href={application.resumeLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 hover:text-blue-800"
-                                                >
+                                                <a href={application.resumeLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
                                                     View Resume
                                                 </a>
                                             </td>

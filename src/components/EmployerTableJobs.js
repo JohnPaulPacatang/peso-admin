@@ -6,6 +6,8 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import EditJobsModal from './EditJobsModal';
 import { useNavigate } from "react-router-dom";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const EmployerTableJobs = () => {
     const navigate = useNavigate();
@@ -19,30 +21,31 @@ const EmployerTableJobs = () => {
 
     useEffect(() => {
         const fetchApplicantCounts = async () => {
-            const counts = {};
-            for (const job of jobs) {
-                try {
+            if (jobs.length === 0) return;
+
+            try {
+                const counts = {};
+                const promises = jobs.map(async (job) => {
                     const q = query(
                         collection(db, 'applications'),
                         where('job_id', '==', job.id)
                     );
                     const snapshot = await getDocs(q);
                     counts[job.id] = snapshot.size;
-                } catch (error) {
-                    console.error('Error fetching applicant count:', error);
-                    counts[job.id] = 0;
-                }
+                });
+
+                await Promise.all(promises);
+                setApplicantCounts(counts);
+            } catch (error) {
+                console.error('Error fetching applicant count:', error);
             }
-            setApplicantCounts(counts);
         };
 
-        if (jobs.length > 0) {
-            fetchApplicantCounts();
-        }
-    }, [jobs]);
+        fetchApplicantCounts();
+    }, [jobs])
 
     useEffect(() => {
-        const fetchJobs = async () => {
+        const fetchJobs = async (sortValue = 'all') => {
             try {
                 const employerData = JSON.parse(localStorage.getItem("employer"));
                 if (!employerData || !employerData.uid || !employerData.companyName) {
@@ -51,8 +54,19 @@ const EmployerTableJobs = () => {
                 }
 
                 const { uid: employerUid, companyName } = employerData;
+                let jobsQuery;
 
-                const querySnapshot = await getDocs(collection(db, 'jobs'));
+                // Create the appropriate query based on sort option
+                if (sortValue === 'open') {
+                    jobsQuery = query(collection(db, 'jobs'), where('isOpen', '==', true));
+                } else if (sortValue === 'closed') {
+                    jobsQuery = query(collection(db, 'jobs'), where('isOpen', '==', false));
+                } else {
+                    // 'all' option - fetch all jobs
+                    jobsQuery = collection(db, 'jobs');
+                }
+
+                const querySnapshot = await getDocs(jobsQuery);
                 const fetchedJobs = querySnapshot.docs
                     .map((doc) => {
                         const data = doc.data();
@@ -63,27 +77,30 @@ const EmployerTableJobs = () => {
                             location: data.location,
                             salaryMin: data.salary_min,
                             salaryMax: data.salary_max,
-                            jobPosted: data.date_posted?.toDate(),
-                            applicants: data.skills?.length || 0,
+                            jobPosted: data.date_posted?.toDate() || new Date(0),
+                            applicants: 0,
                             isOpen: data.isOpen ?? true,
                             jobCategory: data.job_category,
                             jobDescription: data.job_description,
                             jobType: data.job_type,
                             logo: data.logo,
                             skills: data.skills,
+                            experience: data.experience,
                             employerUid: data.employerUid || "",
                         };
                     })
-                    .filter((job) => job.employerUid === employerUid || job.company === companyName);
+                    .filter((job) => job.employerUid === employerUid || job.company === companyName)
+                    .sort((a, b) => (b.jobPosted ? b.jobPosted.getTime() : 0) - (a.jobPosted ? a.jobPosted.getTime() : 0));
 
                 setJobs(fetchedJobs);
             } catch (error) {
                 console.error('Error fetching jobs:', error);
+                toast.error("Error fetching jobs");
             }
         };
 
-        fetchJobs();
-    }, []);
+        fetchJobs(sortOption);
+    }, [sortOption]);
 
 
     const handleDeleteClick = (job) => {
@@ -176,9 +193,9 @@ const EmployerTableJobs = () => {
                         location: data.location,
                         salaryMin: data.salary_min,
                         salaryMax: data.salary_max,
-                        jobPosted: data.date_posted?.toDate(),
+                        jobPosted: data.date_posted?.toDate() || new Date(0),
                         applicants: data.skills?.length || 0,
-                        status: data.experience,
+                        experience: data.experience,
                         jobCategory: data.job_category,
                         jobDescription: data.job_description,
                         jobType: data.job_type,
@@ -186,7 +203,8 @@ const EmployerTableJobs = () => {
                         employerUid: data.employerUid || "",
                     };
                 })
-                .filter((job) => job.employerUid === employerUid || job.company === companyName);
+                .filter((job) => job.employerUid === employerUid || job.company === companyName)
+                .sort((a, b) => b.jobPosted - a.jobPosted);
 
             setJobs(fetchedJobs);
             setIsModalOpen(false);
@@ -248,6 +266,56 @@ const EmployerTableJobs = () => {
         }
     };
 
+    const handleExportPDF = () => {
+        const doc = new jsPDF('portrait', 'mm', 'a4');
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const marginX = 10;
+
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Jobs Report', pageWidth / 2, 20, { align: 'center' });
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
+
+        const tableData = jobs.map(job => [
+            job.title,
+            job.company,
+            job.location,
+            `${job.salaryMin} - ${job.salaryMax}`,
+            job.jobPosted ? job.jobPosted.toLocaleDateString('en-US') : 'N/A',
+            applicantCounts[job.id] || 0,
+            job.isOpen ? 'Open' : 'Closed'
+        ]);
+
+        const headers = [['Title', 'Company', 'Location', 'Salary Range', 'Posted Date', 'Applicants', 'Status']];
+
+        doc.autoTable({
+            head: headers,
+            body: tableData,
+            startY: 35,
+            tableWidth: 'auto',
+            styles: {
+                fontSize: 7,
+                cellPadding: 3,
+                overflow: 'linebreak'
+            },
+            headStyles: {
+                fillColor: [52, 73, 94],
+                textColor: 255,
+                fontSize: 8,
+                fontStyle: 'bold'
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245]
+            },
+            margin: { left: marginX, right: marginX, top: 35 }
+        });
+
+        window.open(doc.output('bloburl'), '_blank');
+    };
+
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -283,11 +351,14 @@ const EmployerTableJobs = () => {
                             onChange={(e) => setSortOption(e.target.value)}
                             className="border border-gray-300 rounded-full py-2 px-4 text-sm font-semibold text-gray-700 mb-2 sm:mb-0"
                         >
-                            <option value="active">Active</option>
-                            <option value="pending">Pending</option>
-                            <option value="expired">Expired</option>
+                            <option value="all">All Jobs</option>
+                            <option value="open">Open</option>
+                            <option value="closed">Closed</option>
                         </select>
-                        <button className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold">
+                        <button
+                            onClick={handleExportPDF}
+                            className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
+                        >
                             Export PDF
                         </button>
                     </div>
@@ -354,12 +425,11 @@ const EmployerTableJobs = () => {
                                                 </button>
                                                 <button
                                                     onClick={() => handleToggleJobStatus(job)}
-                                                    className="flex items-center justify-between w-full text-sm text-blue-600 hover:bg-gray-100 py-2 px-4"
+                                                    className="flex items-center w-full text-sm text-blue-600 hover:bg-gray-100 py-2 px-4"
                                                 >
-                                                    <AiOutlineEdit className="mr-2 flex-shrink-0" />
-                                                    <span className="whitespace-nowrap">Mark {job.isOpen ? 'Closed' : 'Open'}</span>
+                                                    <AiOutlineEdit className="mr-2" />
+                                                    <span>Mark {job.isOpen ? 'Closed' : 'Open'}</span>
                                                 </button>
-
                                             </div>
                                         )}
                                     </td>

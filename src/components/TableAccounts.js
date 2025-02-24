@@ -4,6 +4,8 @@ import { db } from '../firebase';
 import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const ManageAccountsTable = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -96,12 +98,9 @@ const ManageAccountsTable = () => {
         try {
             const accountRef = doc(db, 'employers', editingAccount.id);
             await updateDoc(accountRef, {
-                // companyName is now read-only
-                // email is now read-only
                 contact_person_name: editingAccount.contact_person_name,
                 contact_person_email: editingAccount.contact_person_email,
                 company_address: editingAccount.company_address,
-                // business_permit is now read-only
             });
 
             // Update local state
@@ -141,6 +140,55 @@ const ManageAccountsTable = () => {
         return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
     };
 
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const marginX = 10;
+
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Employer Accounts Report', pageWidth / 2, 20, { align: 'center' });
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
+
+        const headers = [['Company Name', 'Email', 'Contact Person', 'Contact Email', 'Address', 'Verified']];
+        const tableData = accounts.map(acc => [
+            acc.companyName || 'N/A',
+            acc.email || 'N/A',
+            acc.contact_person_name || 'N/A',
+            acc.contact_person_email || 'N/A',
+            acc.company_address || 'N/A',
+            acc.verified ? 'Yes' : 'No'
+        ]);
+
+        doc.autoTable({
+            head: headers,
+            body: tableData,
+            startY: 35,
+            tableWidth: 'auto',
+            styles: {
+                fontSize: 7,
+                cellPadding: 3,
+                overflow: 'linebreak'
+            },
+            headStyles: {
+                fillColor: [52, 73, 94],
+                textColor: 255,
+                fontSize: 8,
+                fontStyle: 'bold'
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245]
+            },
+            margin: { left: marginX, right: marginX, top: 35 }
+        });
+
+
+        window.open(doc.output('bloburl'), '_blank');
+    };
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -168,9 +216,13 @@ const ManageAccountsTable = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="border border-gray-300 px-4 py-2 rounded-3xl text-sm w-64 md:w-80"
                         />
-                        <button className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold">
+                        <button
+                            onClick={handleExportPDF}
+                            className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
+                        >
                             Export PDF
                         </button>
+
                     </div>
                 </div>
             </div>
