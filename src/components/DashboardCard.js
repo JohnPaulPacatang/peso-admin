@@ -16,7 +16,7 @@ function DashboardCard({ number, label, icon, className }) {
 function Dashboard() {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-8 mt-10 sm:mb-12 flex justify-start">
+      <div className="my-6 sm:my-8 flex justify-start">
         <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 sm:gap-8 lg:gap-10">
