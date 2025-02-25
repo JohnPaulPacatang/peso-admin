@@ -37,7 +37,6 @@ function Dashboard() {
   const [applicationsCount, setApplicationsCount] = useState(0);
 
   const [savedCandidatesCount, setSavedCandidatesCount] = useState(4);
-  setSavedCandidatesCount(4); 
 
   const [loading, setLoading] = useState(true);
 
