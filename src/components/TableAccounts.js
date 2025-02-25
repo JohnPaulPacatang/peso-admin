@@ -3,6 +3,7 @@ import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/a
 import { db } from '../firebase';
 import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { toast } from "react-hot-toast";
+import { BeatLoader } from "react-spinners";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -17,9 +18,11 @@ const ManageAccountsTable = () => {
     const dropdownRef = useRef(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [accountsPerPage] = useState(10);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchEmployers = async () => {
+            setIsLoading(true);
             try {
                 const querySnapshot = await getDocs(collection(db, 'employers'));
                 const employersData = querySnapshot.docs.map(doc => ({
@@ -29,6 +32,8 @@ const ManageAccountsTable = () => {
                 setAccounts(employersData);
             } catch (error) {
                 console.error('Error fetching employers:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -141,7 +146,7 @@ const ManageAccountsTable = () => {
     const truncateText = (text, maxLength = 30) => {
         if (!text) return '';
         return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-    };const handleExportPDF = () => {
+    }; const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const marginX = 10;
@@ -202,10 +207,18 @@ const ManageAccountsTable = () => {
         };
     }, []);
 
-    // Reset to first page when search term changes
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm]);
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen">
+                <BeatLoader color="#36d7b7" size={15} />
+                <p className="mt-4 text-gray-600">Loading Accounts...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="py-10 px-4 sm:px-6 lg:px-10">
@@ -309,7 +322,7 @@ const ManageAccountsTable = () => {
                             ))}
                         </tbody>
                     </table>
-                    
+
                     <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
                         <div className="flex-1 flex items-center justify-between">
                             <div>
@@ -322,48 +335,45 @@ const ManageAccountsTable = () => {
                                 </p>
                             </div>
                             <div>
-                            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                <button
-                                    onClick={() => paginate(currentPage - 1)}
-                                    disabled={currentPage === 1}
-                                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium ${
-                                        currentPage === 1 
-                                        ? 'text-gray-300 cursor-not-allowed' 
-                                        : 'text-gray-500 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                </button>
-                                
-                                {[...Array(totalPages)].map((_, i) => (
+                                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                                     <button
-                                        key={i}
-                                        onClick={() => paginate(i + 1)}
-                                        className={`relative inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-large ${
-                                            currentPage === i + 1
-                                            ? 'z-10 bg-blue-50 border-blue text-blue'
-                                            : 'bg-white text-gray-500 hover:bg-gray-50'
-                                        }`}
+                                        onClick={() => paginate(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium ${currentPage === 1
+                                            ? 'text-gray-300 cursor-not-allowed'
+                                            : 'text-gray-500 hover:bg-gray-50'
+                                            }`}
                                     >
-                                        {i + 1}
+                                        <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
                                     </button>
-                                ))}
-                                
-                                <button
-                                    onClick={() => paginate(currentPage + 1)}
-                                    disabled={currentPage === totalPages}
-                                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium ${
-                                        currentPage === totalPages 
-                                        ? 'text-gray-300 cursor-not-allowed' 
-                                        : 'text-gray-500 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                </button>
+
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => paginate(i + 1)}
+                                            className={`relative inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-large ${currentPage === i + 1
+                                                ? 'z-10 bg-blue-50 border-blue text-blue'
+                                                : 'bg-white text-gray-500 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+
+                                    <button
+                                        onClick={() => paginate(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                        className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium ${currentPage === totalPages
+                                            ? 'text-gray-300 cursor-not-allowed'
+                                            : 'text-gray-500 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
                                 </nav>
                             </div>
                         </div>

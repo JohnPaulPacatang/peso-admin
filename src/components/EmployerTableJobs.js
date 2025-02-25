@@ -5,6 +5,7 @@ import { db } from "../firebase";
 import { toast } from "react-hot-toast";
 import EditJobsModal from './EditJobsModal';
 import { useNavigate } from "react-router-dom";
+import { BeatLoader } from "react-spinners";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -17,6 +18,24 @@ const EmployerTableJobs = () => {
     const dropdownRef = useRef(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [applicantCounts, setApplicantCounts] = useState({});
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [jobsPerPage] = useState(10);
+
+    // Calculate pagination values
+    const indexOfLastJob = currentPage * jobsPerPage;
+    const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+    const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
+    const totalPages = Math.ceil(jobs.length / jobsPerPage);
+
+    // Function to change page
+    const paginate = (pageNumber) => {
+        if (pageNumber > 0 && pageNumber <= totalPages) {
+            setCurrentPage(pageNumber);
+        }
+    };
 
     useEffect(() => {
         const fetchApplicantCounts = async () => {
@@ -42,9 +61,12 @@ const EmployerTableJobs = () => {
 
         fetchApplicantCounts();
     }, [jobs])
+   
 
     useEffect(() => {
         const fetchJobs = async (sortValue = 'all') => {
+            setIsLoading(true);
+
             try {
                 const employerData = JSON.parse(localStorage.getItem("employer"));
                 if (!employerData || !employerData.uid || !employerData.companyName) {
@@ -94,11 +116,14 @@ const EmployerTableJobs = () => {
                 setJobs(fetchedJobs);
             } catch (error) {
                 console.error('Error fetching jobs:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
         fetchJobs(sortOption);
     }, [sortOption]);
+
 
 
     const handleDeleteClick = (job) => {
@@ -213,12 +238,11 @@ const EmployerTableJobs = () => {
         });
     };
 
-
     const handleToggleJobStatus = async (job) => {
         const togglePromise = new Promise(async (resolve, reject) => {
             try {
                 const jobRef = doc(db, "jobs", job.id);
-                const newStatus = !job.isOpen; 
+                const newStatus = !job.isOpen;
 
                 await updateDoc(jobRef, { isOpen: newStatus });
 
@@ -307,7 +331,16 @@ const EmployerTableJobs = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isDeleteConfirmOpen, isModalOpen]);
-    
+
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen">
+                <BeatLoader color="#36d7b7" size={15} />
+                <p className="mt-4 text-gray-600">Loading Jobs...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="py-10 px-4 sm:px-6 lg:px-10">
@@ -359,7 +392,7 @@ const EmployerTableJobs = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {jobs.map((job) => (
+                            {currentJobs.map((job) => (
                                 <tr key={job.id} className="border-b border-gray-200">
                                     <td className="px-3 py-3 text-sm text-gray-700">{job.title}</td>
                                     <td className="px-3 py-3 text-sm text-gray-700">{job.company}</td>
@@ -414,6 +447,63 @@ const EmployerTableJobs = () => {
                             ))}
                         </tbody>
                     </table>
+
+                    {/* Pagination Section */}
+                    <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
+                        <div className="flex-1 flex items-center justify-between">
+                            <div>
+                                <p className="text-sm text-gray-700">
+                                    Showing <span className="font-medium">{indexOfFirstJob + 1}</span> to{" "}
+                                    <span className="font-medium">
+                                        {Math.min(indexOfLastJob, jobs.length)}
+                                    </span>{" "}
+                                    of <span className="font-medium">{jobs.length}</span> results
+                                </p>
+                            </div>
+                            <div>
+                                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    <button
+                                        onClick={() => paginate(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium ${currentPage === 1
+                                            ? 'text-gray-300 cursor-not-allowed'
+                                            : 'text-gray-500 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+
+                                    {[...Array(totalPages)].map((_, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => paginate(i + 1)}
+                                            className={`relative inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-large ${currentPage === i + 1
+                                                ? 'z-10 bg-blue-50 border-blue text-blue'
+                                                : 'bg-white text-gray-500 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
+
+                                    <button
+                                        onClick={() => paginate(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                        className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium ${currentPage === totalPages
+                                            ? 'text-gray-300 cursor-not-allowed'
+                                            : 'text-gray-500 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

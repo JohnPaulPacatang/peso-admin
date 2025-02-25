@@ -3,6 +3,7 @@ import { AiOutlineEllipsis } from "react-icons/ai";
 import { collection, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-hot-toast";
+import { BeatLoader } from "react-spinners";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import EditAnnouncementModal from "./EditAnnouncementModal";
@@ -19,9 +20,11 @@ const TableAnnouncements = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [announcementsPerPage] = useState(10);
     const modalRef = useRef(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchAnnouncements = async () => {
+            setIsLoading(true);
             try {
                 const querySnapshot = await getDocs(collection(db, "announcements"));
                 const announcementsData = querySnapshot.docs.map((doc) => ({
@@ -37,6 +40,8 @@ const TableAnnouncements = () => {
                 setAnnouncements(announcementsData);
             } catch (error) {
                 console.error("Error fetching announcements:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -200,6 +205,15 @@ const TableAnnouncements = () => {
         };
     }, [isDeleteConfirmOpen]);
 
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen">
+                <BeatLoader color="#36d7b7" size={15} />
+                <p className="mt-4 text-gray-600">Loading Announcements...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="py-10 px-4 sm:px-6 lg:px-10">
             {/* Header Section */}
@@ -293,8 +307,8 @@ const TableAnnouncements = () => {
                                         onClick={() => paginate(currentPage - 1)}
                                         disabled={currentPage === 1}
                                         className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium ${currentPage === 1
-                                                ? 'text-gray-300 cursor-not-allowed'
-                                                : 'text-gray-500 hover:bg-gray-50'
+                                            ? 'text-gray-300 cursor-not-allowed'
+                                            : 'text-gray-500 hover:bg-gray-50'
                                             }`}
                                     >
                                         <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -307,8 +321,8 @@ const TableAnnouncements = () => {
                                             key={i}
                                             onClick={() => paginate(i + 1)}
                                             className={`relative inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-large ${currentPage === i + 1
-                                                    ? 'z-10 bg-blue-50 border-blue text-blue'
-                                                    : 'bg-white text-gray-500 hover:bg-gray-50'
+                                                ? 'z-10 bg-blue-50 border-blue text-blue'
+                                                : 'bg-white text-gray-500 hover:bg-gray-50'
                                                 }`}
                                         >
                                             {i + 1}
@@ -319,8 +333,8 @@ const TableAnnouncements = () => {
                                         onClick={() => paginate(currentPage + 1)}
                                         disabled={currentPage === totalPages}
                                         className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium ${currentPage === totalPages
-                                                ? 'text-gray-300 cursor-not-allowed'
-                                                : 'text-gray-500 hover:bg-gray-50'
+                                            ? 'text-gray-300 cursor-not-allowed'
+                                            : 'text-gray-500 hover:bg-gray-50'
                                             }`}
                                     >
                                         <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

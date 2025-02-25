@@ -382,8 +382,7 @@ const EmployerProfileCard = () => {
                     onClick={handleSaveProfile}
                     disabled={!isChanged || isSaving}
                     className={`w-full text-white font-medium py-2 sm:py-3 rounded-xl mt-6 text-sm sm:text-base flex justify-center items-center
-        ${!isChanged || isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} 
-        transition-colors duration-200`}
+                    ${!isChanged || isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} transition-colors duration-200`}
                 >
                     {isSaving ? (
                         <div className="flex justify-center items-center">
