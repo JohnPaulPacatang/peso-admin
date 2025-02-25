@@ -6,6 +6,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { BeatLoader, ClipLoader } from "react-spinners";
 
 const EmployerProfileCard = () => {
     const navigate = useNavigate();
@@ -29,8 +30,14 @@ const EmployerProfileCard = () => {
     const [selectedFiles, setSelectedFiles] = useState({ companyLogo: null, businessPermit: null });
     const [previewUrls, setPreviewUrls] = useState({ companyLogo: "", businessPermit: "" });
 
+    // Loading states
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState({ companyLogo: false, businessPermit: false });
+
     useEffect(() => {
         const fetchEmployerData = async () => {
+            setIsLoading(true);
             const storedEmployer = localStorage.getItem("employer");
             if (!storedEmployer) {
                 navigate("/");
@@ -73,6 +80,9 @@ const EmployerProfileCard = () => {
                 }
             } catch (error) {
                 console.error("Error fetching employer data:", error);
+                toast.error("Failed to load profile data");
+            } finally {
+                setIsLoading(false);
             }
         };
 
@@ -130,6 +140,9 @@ const EmployerProfileCard = () => {
             }
         }
 
+        // Set uploading state for this field
+        setIsUploading(prev => ({ ...prev, [field]: true }));
+
         // Store file in state instead of uploading
         setSelectedFiles((prev) => ({ ...prev, [field]: file }));
         setIsChanged(true);
@@ -146,6 +159,11 @@ const EmployerProfileCard = () => {
                 [field]: file.name,
             }));
         }
+
+        // Simulate file processing delay
+        setTimeout(() => {
+            setIsUploading(prev => ({ ...prev, [field]: false }));
+        }, 1000);
     };
 
     const handleChange = (e) => {
@@ -160,6 +178,8 @@ const EmployerProfileCard = () => {
     };
 
     const handleSaveProfile = async () => {
+        setIsSaving(true);
+
         const saveProfilePromise = new Promise(async (resolve, reject) => {
             try {
                 if (selectedFiles.companyLogo) {
@@ -194,6 +214,8 @@ const EmployerProfileCard = () => {
             } catch (error) {
                 console.error("Error saving profile:", error);
                 reject("Failed to save profile. Please try again.");
+            } finally {
+                setIsSaving(false);
             }
         });
 
@@ -204,6 +226,14 @@ const EmployerProfileCard = () => {
         });
     };
 
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen">
+                <BeatLoader color="#36d7b7" size={15} />
+                <p className="mt-4 text-gray-600">Loading profile...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="px-2 py-12 sm:px-4 md:px-6 lg:px-8 w-full mx-auto space-y-6">
@@ -213,16 +243,22 @@ const EmployerProfileCard = () => {
                 <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-3xl shadow-lg border border-gray-200 flex flex-col items-center w-full max-w-xs">
                     <div className="relative w-24 sm:w-32 h-24 sm:h-32 mb-4">
                         <div className="w-full h-full rounded-full overflow-hidden border-4 border-gray-300 flex items-center justify-center bg-gray-100">
-                            <img
-                                src={previewUrls.companyLogo || employer.companyLogo || LogoUser}
-                                alt="Company Logo"
-                                className="w-full h-full object-cover"
-                                onLoad={() => setIsLogoLoaded(true)}
-                                onError={() => setIsLogoLoaded(false)}
-                                style={{ display: isLogoLoaded ? 'block' : 'none' }}
-                            />
-                            {!isLogoLoaded && (
-                                <span className="absolute text-center text-gray-600">Company Logo</span>
+                            {isUploading.companyLogo ? (
+                                <BeatLoader color="#36d7b7" size={8} />
+                            ) : (
+                                <>
+                                    <img
+                                        src={previewUrls.companyLogo || employer.companyLogo || LogoUser}
+                                        alt="Company Logo"
+                                        className="w-full h-full object-cover"
+                                        onLoad={() => setIsLogoLoaded(true)}
+                                        onError={() => setIsLogoLoaded(false)}
+                                        style={{ display: isLogoLoaded ? 'block' : 'none' }}
+                                    />
+                                    {!isLogoLoaded && (
+                                        <span className="absolute text-center text-gray-600">Company Logo</span>
+                                    )}
+                                </>
                             )}
                         </div>
                         <label className="absolute bottom-0 right-0 bg-gray-200 p-2 rounded-full cursor-pointer shadow-md hover:bg-gray-300 transition-colors">
@@ -232,6 +268,7 @@ const EmployerProfileCard = () => {
                                 accept="image/*"
                                 className="hidden"
                                 onChange={(e) => handleFileChange(e, "companyLogo", "company-logo")}
+                                disabled={isUploading.companyLogo}
                             />
                         </label>
                     </div>
@@ -301,7 +338,12 @@ const EmployerProfileCard = () => {
                 <div>
                     <label className="block text-gray-600 mb-2 text-sm">Business Permit</label>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                        {previewUrls.businessPermit ? (
+                        {isUploading.businessPermit ? (
+                            <div className="flex items-center gap-2">
+                                <BeatLoader color="#36d7b7" size={8} />
+                                <span className="text-gray-500 text-sm">Processing file...</span>
+                            </div>
+                        ) : previewUrls.businessPermit ? (
                             previewUrls.businessPermit.endsWith(".pdf") ? (
                                 <p className="text-blue-500 text-sm">{previewUrls.businessPermit}</p>
                             ) : (
@@ -320,7 +362,7 @@ const EmployerProfileCard = () => {
                             <span className="text-gray-500 text-sm">No permit uploaded</span>
                         )}
 
-                        <label className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer border border-gray-300 rounded-xl p-1 transition text-sm">
+                        <label className={`flex items-center gap-1 ${isUploading.businessPermit ? 'bg-gray-300' : 'bg-gray-100 hover:bg-gray-200'} text-gray-700 cursor-pointer border border-gray-300 rounded-xl p-1 transition text-sm`}>
                             <CiCloudOn className="text-md" />
                             <span>{employer.businessPermit || previewUrls.businessPermit ? "Change File" : "Upload Permit"}</span>
                             <input
@@ -328,24 +370,31 @@ const EmployerProfileCard = () => {
                                 accept="image/*,application/pdf"
                                 onChange={(e) => handleFileChange(e, "businessPermit", "permits")}
                                 className="hidden"
+                                disabled={isUploading.businessPermit}
                             />
                         </label>
                     </div>
                 </div>
 
+
                 <button
                     type="button"
                     onClick={handleSaveProfile}
-                    disabled={!isChanged}
-                    className={`w-full text-white font-medium py-2 sm:py-3 rounded-xl mt-6 text-sm sm:text-base
-            ${!isChanged ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} 
-            transition-colors duration-200`}
+                    disabled={!isChanged || isSaving}
+                    className={`w-full text-white font-medium py-2 sm:py-3 rounded-xl mt-6 text-sm sm:text-base flex justify-center items-center
+        ${!isChanged || isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'} 
+        transition-colors duration-200`}
                 >
-                    Save Profile
+                    {isSaving ? (
+                        <div className="flex justify-center items-center">
+                            <ClipLoader color="#ffffff" size={20} />
+                        </div>
+                    ) : (
+                        "Save Profile"
+                    )}
                 </button>
             </div>
         </div>
-
     );
 };
 

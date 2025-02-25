@@ -242,8 +242,6 @@ const EmployerTableJobs = () => {
         });
     };
 
-
-
     const handleExportPDF = () => {
         const doc = new jsPDF('portrait', 'mm', 'a4');
 
@@ -309,6 +307,7 @@ const EmployerTableJobs = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isDeleteConfirmOpen, isModalOpen]);
+    
 
     return (
         <div className="py-10 px-4 sm:px-6 lg:px-10">

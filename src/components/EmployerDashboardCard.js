@@ -19,6 +19,19 @@ function DashboardCard({ number, label, icon, className }) {
   );
 }
 
+// Skeleton Card Component
+function SkeletonCard() {
+  return (
+    <div className="bg-white p-6 m-1 sm:p-8 lg:p-10 rounded-3xl shadow-md flex items-center justify-between animate-pulse">
+      <div className="flex flex-col items-start text-left">
+        <div className="h-8 w-16 bg-gray-200 rounded-lg mb-2"></div>
+        <div className="h-4 w-24 bg-gray-200 rounded-lg"></div>
+      </div>
+      <div className="h-12 w-12 bg-gray-200 rounded-full ml-4"></div>
+    </div>
+  );
+}
+
 // Employer Dashboard Component
 function EmployerDashboard() {
   const [jobCount, setJobCount] = useState(0);
@@ -28,11 +41,10 @@ function EmployerDashboard() {
   const [loading, setLoading] = useState(true);
   const [employerUid, setEmployerUid] = useState(null);
 
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        console.log("Logged-in employer UID:", user.uid);
+        // console.log("Logged-in employer UID:", user.uid);
         setEmployerUid(user.uid);
       } else {
         console.error("No employer is logged in.");
@@ -58,7 +70,6 @@ function EmployerDashboard() {
         setOpenJobsCount(openJobs);
 
         if (jobIds.length > 0) {
-          // Fetch applications with jobIds matching those posted by the employer
           const applicationsQuery = query(collection(db, "applications"), where("job_id", "in", jobIds));
           const applicationsSnapshot = await getDocs(applicationsQuery);
           setApplicationsCount(applicationsSnapshot.size);
@@ -77,20 +88,27 @@ function EmployerDashboard() {
     fetchJobData();
   }, [employerUid]);
 
-  if (loading) {
-    return <div className="p-6 sm:p-8 lg:p-14">Loading...</div>;
-  }
-
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="my-6 sm:my-8 flex justify-start">
         <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 sm:gap-8 lg:gap-10">
-        <DashboardCard number={jobCount} label="Posted Jobs" icon={<FaUserCircle />} />
-        <DashboardCard number={openJobsCount} label="Open Jobs" icon={<FaCheckCircle />} />
-        <DashboardCard number={applicationsCount} label="Applications" icon={<FaPaperPlane />} />
-        <DashboardCard number={savedCandidatesCount} label="Saved Candidates" icon={<FaBriefcase />} />
+        {loading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : (
+          <>
+            <DashboardCard number={jobCount} label="Posted Jobs" icon={<FaUserCircle />} />
+            <DashboardCard number={openJobsCount} label="Open Jobs" icon={<FaCheckCircle />} />
+            <DashboardCard number={applicationsCount} label="Applications" icon={<FaPaperPlane />} />
+            <DashboardCard number={savedCandidatesCount} label="Saved Candidates" icon={<FaBriefcase />} />
+          </>
+        )}
       </div>
     </div>
   );

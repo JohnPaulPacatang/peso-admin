@@ -224,7 +224,6 @@ const Jobs = () => {
     };
 
 
-
     const handleExportPDF = () => {
         const doc = new jsPDF('portrait', 'mm', 'a4');
 

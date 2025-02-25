@@ -60,7 +60,7 @@ function MainApp() {
     };
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div></div>;
 
   const isLoginPage = location.pathname === "/";
   const isEmployerSignup = location.pathname === "/employer-signup";
