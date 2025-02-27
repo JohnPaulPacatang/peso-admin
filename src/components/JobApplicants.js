@@ -3,6 +3,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
+import { BeatLoader } from "react-spinners";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -14,6 +15,7 @@ const JobApplicants = () => {
 
     useEffect(() => {
         const fetchApplications = async () => {
+            setLoading(true);
             try {
                 const q = query(
                     collection(db, 'applications'),
@@ -105,8 +107,9 @@ const JobApplicants = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-full">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            <div className="flex flex-col items-center justify-center h-screen">
+                <BeatLoader color="#36d7b7" size={15} />
+                <p className="mt-4 text-gray-600">Loading Applicants...</p>
             </div>
         );
     }
@@ -117,6 +120,11 @@ const JobApplicants = () => {
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Job Applicants</h1>
                     <div className="space-x-4">
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            className="border border-gray-300 px-4 py-2 rounded-3xl text-sm"
+                        />
                         <button
                             onClick={handleExportPDF}
                             className="bg-green-500 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"

@@ -59,7 +59,7 @@ const EmployerTableJobs = () => {
 
         fetchApplicantCounts();
     }, [jobs])
-   
+
 
     useEffect(() => {
         const fetchJobs = async (sortValue = 'all') => {
@@ -74,7 +74,7 @@ const EmployerTableJobs = () => {
 
                 const { uid: employerUid, companyName } = employerData;
                 let jobsQuery;
-             
+
                 if (sortValue === 'open') {
                     jobsQuery = query(collection(db, 'jobs'), where('isOpen', '==', true));
                 } else if (sortValue === 'closed') {
@@ -121,7 +121,7 @@ const EmployerTableJobs = () => {
         fetchJobs(sortOption);
     }, [sortOption]);
 
-    
+
     const handleDeleteClick = (job) => {
         setSelectedJob(job);
         setIsDeleteConfirmOpen(true);
@@ -166,7 +166,7 @@ const EmployerTableJobs = () => {
     //     setSelectedJob(null);
     // };
 
-    
+
     const handleUpdate = (job) => {
         navigate(`/employer/jobs/edit/${job.id}`, {
             state: {
@@ -367,12 +367,11 @@ const EmployerTableJobs = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Job Listings</h1>
                     <div className="flex flex-wrap items-center space-x-4">
-                        <button className="bg-blue-600 text-white hover:bg-blue-700 py-2 px-4 rounded-full text-sm font-semibold mb-2 sm:mb-0">
-                            All
-                        </button>
-                        <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-full text-sm font-semibold mb-2 sm:mb-0">
-                            New
-                        </button>
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            className="border border-gray-300 px-4 py-2 rounded-3xl text-sm"
+                        />
                         <p className="font-semibold mb-2 sm:mb-0">Sort by:</p>
                         <select
                             value={sortOption}
