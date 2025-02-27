@@ -3,7 +3,6 @@ import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/a
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, where, } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-hot-toast";
-import EditJobsModal from './EditJobsModal';
 import { useNavigate } from "react-router-dom";
 import { BeatLoader } from "react-spinners";
 import jsPDF from 'jspdf';
@@ -14,7 +13,6 @@ const EmployerTableJobs = () => {
     const [jobs, setJobs] = useState([]);
     const [selectedJob, setSelectedJob] = useState(null);
     const [sortOption, setSortOption] = useState('active');
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const dropdownRef = useRef(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [applicantCounts, setApplicantCounts] = useState({});
@@ -76,8 +74,7 @@ const EmployerTableJobs = () => {
 
                 const { uid: employerUid, companyName } = employerData;
                 let jobsQuery;
-
-                // Create the appropriate query based on sort option
+             
                 if (sortValue === 'open') {
                     jobsQuery = query(collection(db, 'jobs'), where('isOpen', '==', true));
                 } else if (sortValue === 'closed') {
@@ -124,8 +121,7 @@ const EmployerTableJobs = () => {
         fetchJobs(sortOption);
     }, [sortOption]);
 
-
-
+    
     const handleDeleteClick = (job) => {
         setSelectedJob(job);
         setIsDeleteConfirmOpen(true);
@@ -151,7 +147,6 @@ const EmployerTableJobs = () => {
         });
     };
 
-
     const cancelDelete = () => {
         setIsDeleteConfirmOpen(false);
         setSelectedJob(null);
@@ -161,82 +156,105 @@ const EmployerTableJobs = () => {
         setSelectedJob(selectedJob && selectedJob.id === job.id ? null : job);
     };
 
+    // const handleUpdate = (job) => {
+    //     setSelectedJob(job);
+    //     setIsModalOpen(true);
+    // };
+
+    // const handleModalClose = () => {
+    //     setIsModalOpen(false);
+    //     setSelectedJob(null);
+    // };
+
+    
     const handleUpdate = (job) => {
-        setSelectedJob(job);
-        setIsModalOpen(true);
-    };
-
-    const handleModalClose = () => {
-        setIsModalOpen(false);
-        setSelectedJob(null);
-    };
-
-    const handleSaveJob = async (updatedJob) => {
-        const updatedData = {
-            job_title: updatedJob.job_title || "",
-            company: updatedJob.company || "",
-            location: updatedJob.location || "",
-            salary_min: updatedJob.salary_min || "",
-            salary_max: updatedJob.salary_max || "",
-            experience: updatedJob.experience || "",
-            job_category: updatedJob.job_category || "",
-            job_description: updatedJob.job_description || "",
-            job_type: updatedJob.job_type || "",
-        };
-
-        const jobUpdatePromise = new Promise(async (resolve, reject) => {
-            try {
-                // Get employer data from localStorage
-                const employerData = JSON.parse(localStorage.getItem("employer"));
-                if (!employerData || !employerData.uid || !employerData.companyName) {
-                    throw new Error("Employer data is missing");
+        navigate(`/employer/jobs/edit/${job.id}`, {
+            state: {
+                job: {
+                    id: job.id,
+                    company: job.company,
+                    job_title: job.title,
+                    job_description: job.jobDescription,
+                    job_category: job.jobCategory,
+                    location: job.location,
+                    salary_min: job.salaryMin,
+                    salary_max: job.salaryMax,
+                    job_type: job.jobType,
+                    experience: job.experience,
+                    logo: job.logo,
+                    skills: job.skills,
                 }
-                const { uid: employerUid, companyName } = employerData;
-
-                // Update the job in Firestore
-                const jobRef = doc(db, 'jobs', updatedJob.id);
-                await updateDoc(jobRef, updatedData);
-
-                // Fetch updated jobs for the employer
-                const querySnapshot = await getDocs(collection(db, 'jobs'));
-                const fetchedJobs = querySnapshot.docs
-                    .map((doc) => {
-                        const data = doc.data();
-                        return {
-                            id: doc.id,
-                            title: data.job_title,
-                            company: data.company,
-                            location: data.location,
-                            salaryMin: data.salary_min,
-                            salaryMax: data.salary_max,
-                            jobPosted: data.date_posted?.toDate() || new Date(0),
-                            applicants: data.skills?.length || 0,
-                            experience: data.experience,
-                            jobCategory: data.job_category,
-                            jobDescription: data.job_description,
-                            jobType: data.job_type,
-                            isOpen: data.isOpen ?? true,
-                            employerUid: data.employerUid || "",
-                        };
-                    })
-                    .filter((job) => job.employerUid === employerUid || job.company === companyName)
-                    .sort((a, b) => b.jobPosted - a.jobPosted);
-
-                setJobs(fetchedJobs);
-                setIsModalOpen(false);
-                resolve("Job updated successfully!");
-            } catch (error) {
-                console.error("Error updating job:", error);
-                reject("Error updating job.");
             }
         });
-
-        toast.promise(jobUpdatePromise, {
-            loading: "Updating job...",
-            success: "Job updated successfully!",
-            error: "Error updating job.",
-        });
     };
+
+
+    // const handleSaveJob = async (updatedJob) => {
+    //     const updatedData = {
+    //         job_title: updatedJob.job_title || "",
+    //         company: updatedJob.company || "",
+    //         location: updatedJob.location || "",
+    //         salary_min: updatedJob.salary_min || "",
+    //         salary_max: updatedJob.salary_max || "",
+    //         experience: updatedJob.experience || "",
+    //         job_category: updatedJob.job_category || "",
+    //         job_description: updatedJob.job_description || "",
+    //         job_type: updatedJob.job_type || "",
+    //     };
+
+    //     const jobUpdatePromise = new Promise(async (resolve, reject) => {
+    //         try {
+    //             // Get employer data from localStorage
+    //             const employerData = JSON.parse(localStorage.getItem("employer"));
+    //             if (!employerData || !employerData.uid || !employerData.companyName) {
+    //                 throw new Error("Employer data is missing");
+    //             }
+    //             const { uid: employerUid, companyName } = employerData;
+
+    //             // Update the job in Firestore
+    //             const jobRef = doc(db, 'jobs', updatedJob.id);
+    //             await updateDoc(jobRef, updatedData);
+
+    //             // Fetch updated jobs for the employer
+    //             const querySnapshot = await getDocs(collection(db, 'jobs'));
+    //             const fetchedJobs = querySnapshot.docs
+    //                 .map((doc) => {
+    //                     const data = doc.data();
+    //                     return {
+    //                         id: doc.id,
+    //                         title: data.job_title,
+    //                         company: data.company,
+    //                         location: data.location,
+    //                         salaryMin: data.salary_min,
+    //                         salaryMax: data.salary_max,
+    //                         jobPosted: data.date_posted?.toDate() || new Date(0),
+    //                         applicants: data.skills?.length || 0,
+    //                         experience: data.experience,
+    //                         jobCategory: data.job_category,
+    //                         jobDescription: data.job_description,
+    //                         jobType: data.job_type,
+    //                         isOpen: data.isOpen ?? true,
+    //                         employerUid: data.employerUid || "",
+    //                     };
+    //                 })
+    //                 .filter((job) => job.employerUid === employerUid || job.company === companyName)
+    //                 .sort((a, b) => b.jobPosted - a.jobPosted);
+
+    //             setJobs(fetchedJobs);
+    //             setIsModalOpen(false);
+    //             resolve("Job updated successfully!");
+    //         } catch (error) {
+    //             console.error("Error updating job:", error);
+    //             reject("Error updating job.");
+    //         }
+    //     });
+
+    //     toast.promise(jobUpdatePromise, {
+    //         loading: "Updating job...",
+    //         success: "Job updated successfully!",
+    //         error: "Error updating job.",
+    //     });
+    // };
 
     const handleToggleJobStatus = async (job) => {
         const togglePromise = new Promise(async (resolve, reject) => {
@@ -319,7 +337,7 @@ const EmployerTableJobs = () => {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (isDeleteConfirmOpen || isModalOpen) return;
+            if (isDeleteConfirmOpen) return;
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setSelectedJob(null);
             }
@@ -330,7 +348,7 @@ const EmployerTableJobs = () => {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isDeleteConfirmOpen, isModalOpen]);
+    }, [isDeleteConfirmOpen]);
 
 
     if (isLoading) {
@@ -521,10 +539,6 @@ const EmployerTableJobs = () => {
                         </div>
                     </div>
                 </div>
-            )}
-
-            {isModalOpen && (
-                <EditJobsModal job={selectedJob} isOpen={isModalOpen} onClose={handleModalClose} onSave={handleSaveJob} />
             )}
         </div>
     );

@@ -12,12 +12,12 @@ function PostJobForm() {
   const [jobTitle, setJobTitle] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [jobCategory, setJobCategory] = useState("");
-  const [jobType, setJobType] = useState("Full-time");
+  const [jobType, setJobType] = useState("");
   const [location, setLocation] = useState("");
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
   const [skills, setSkills] = useState("");
-  const [experience, setExperience] = useState("Beginner");
+  const [experience, setExperience] = useState("");
   const [logo, setLogo] = useState(null);
   const [recentLogos, setRecentLogos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -223,6 +223,9 @@ function PostJobForm() {
                 onChange={(e) => setJobType(e.target.value)}
                 className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
+                <option value="" disabled selected>
+                  Select Job Type
+                </option>
                 <option value="Full-time">Full-time</option>
                 <option value="Part-time">Part-time</option>
                 <option value="Contract">Contract</option>
@@ -319,15 +322,15 @@ function PostJobForm() {
                 onChange={(e) => setExperience(e.target.value)}
                 className="w-full border border-gray-300 rounded-3xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
+                <option value="" disabled selected>
+                  Select Experience Level
+                </option>
                 <option value="Beginner">Beginner</option>
                 <option value="Intermediate">Intermediate</option>
                 <option value="Expert">Expert</option>
               </select>
-
             </div>
           </div>
-
-
 
           {/* Submit Button */}
           <div className="px-3">

@@ -3,7 +3,6 @@ import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/a
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-hot-toast";
-import EditJobsModal from './EditJobsModal';
 import { useNavigate } from "react-router-dom";
 import { BeatLoader } from "react-spinners";
 import jsPDF from 'jspdf';
@@ -14,7 +13,6 @@ const Jobs = () => {
     const [jobs, setJobs] = useState([]);
     const [selectedJob, setSelectedJob] = useState(null);
     const [sortOption, setSortOption] = useState('active');
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const dropdownRef = useRef(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [applicantCounts, setApplicantCounts] = useState({});
@@ -150,70 +148,23 @@ const Jobs = () => {
     };
 
     const handleUpdate = (job) => {
-        setSelectedJob(job);
-        setIsModalOpen(true);
-    };
-
-    const handleModalClose = () => {
-        setIsModalOpen(false);
-        setSelectedJob(null);
-    };
-
-    const handleSaveJob = async (updatedJob) => {
-        const updatedData = {
-            job_title: updatedJob.job_title || "",
-            company: updatedJob.company || "",
-            location: updatedJob.location || "",
-            salary_min: updatedJob.salary_min || "",
-            salary_max: updatedJob.salary_max || "",
-            experience: updatedJob.experience || "",
-            job_category: updatedJob.job_category || "",
-            job_description: updatedJob.job_description || "",
-            job_type: updatedJob.job_type || "",
-            // logo: updatedJob.logo || "",
-            // skills: updatedJob.skills || [],
-        };
-
-        const updatePromise = new Promise(async (resolve, reject) => {
-            try {
-                const jobRef = doc(db, "jobs", updatedJob.id);
-                await updateDoc(jobRef, updatedData);
-                const querySnapshot = await getDocs(collection(db, "jobs"));
-                const fetchedJobs = querySnapshot.docs.map((doc) => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        title: data.job_title,
-                        company: data.company,
-                        location: data.location,
-                        salaryMin: data.salary_min,
-                        salaryMax: data.salary_max,
-                        jobPosted: data.date_posted ? data.date_posted.toDate() : null,
-                        applicants: data.skills?.length || 0,
-                        experience: data.experience,
-                        jobCategory: data.job_category,
-                        jobDescription: data.job_description,
-                        jobType: data.job_type,
-                        isOpen: data.isOpen ?? true,
-                        // logo: data.logo,
-                        // skills: data.skills,
-                    };
-                });
-
-                fetchedJobs.sort((a, b) => (b.jobPosted ? b.jobPosted.getTime() : 0) - (a.jobPosted ? a.jobPosted.getTime() : 0));
-
-                setJobs(fetchedJobs);
-                setIsModalOpen(false);
-                resolve("Job updated");
-            } catch (error) {
-                reject("Error updating job.");
+        navigate(`/admin/jobs/edit/${job.id}`, {
+            state: {
+                job: {
+                    id: job.id,
+                    company: job.company,
+                    job_title: job.title,
+                    job_description: job.jobDescription,
+                    job_category: job.jobCategory,
+                    location: job.location,
+                    salary_min: job.salaryMin,
+                    salary_max: job.salaryMax,
+                    job_type: job.jobType,
+                    experience: job.experience,
+                    logo: job.logo,
+                    skills: job.skills,
+                }
             }
-        });
-
-        toast.promise(updatePromise, {
-            loading: "Updating job, please wait...",
-            success: "Job updated",
-            error: "Error updating job.",
         });
     };
 
@@ -222,7 +173,7 @@ const Jobs = () => {
         const togglePromise = new Promise(async (resolve, reject) => {
             try {
                 const jobRef = doc(db, "jobs", job.id);
-                const newStatus = !job.isOpen; // Determine new status
+                const newStatus = !job.isOpen;
 
                 await updateDoc(jobRef, { isOpen: newStatus });
 
@@ -241,11 +192,10 @@ const Jobs = () => {
 
         toast.promise(togglePromise, {
             loading: "Updating job status, please wait...",
-            success: (msg) => msg, // Use the resolved message dynamically
+            success: (msg) => msg,
             error: "Failed to update job status.",
         });
     };
-
 
 
     const handleExportPDF = () => {
@@ -298,10 +248,9 @@ const Jobs = () => {
         window.open(doc.output('bloburl'), '_blank');
     };
 
-
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (isDeleteConfirmOpen || isModalOpen) return;
+            if (isDeleteConfirmOpen) return;
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setSelectedJob(null);
             }
@@ -312,7 +261,7 @@ const Jobs = () => {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isDeleteConfirmOpen, isModalOpen]);
+    }, [isDeleteConfirmOpen]);
 
 
     if (isLoading) {
@@ -410,6 +359,7 @@ const Jobs = () => {
                                                     <AiOutlineEdit className="mr-2" />
                                                     Edit
                                                 </button>
+
                                                 <button onClick={() => handleDeleteClick(job)} className="flex items-center w-full text-sm text-red-600 hover:bg-gray-100 py-2 px-4">
                                                     <AiOutlineDelete className="mr-2" />
                                                     Delete
@@ -502,10 +452,6 @@ const Jobs = () => {
                         </div>
                     </div>
                 </div>
-            )}
-
-            {isModalOpen && (
-                <EditJobsModal job={selectedJob} isOpen={isModalOpen} onClose={handleModalClose} onSave={handleSaveJob} />
             )}
         </div>
     );
