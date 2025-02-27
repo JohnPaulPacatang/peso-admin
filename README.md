@@ -25,8 +25,8 @@ Ensure you have the following installed on your system:
 ### Setup
 Clone the repository:
 ```sh
-git clone https://github.com/your-repo/peso-management.git
-cd peso-management
+git clone https://github.com/JohnPaulPacatang/peso-admin.git
+cd peso-admin
 ```
 
 Install dependencies:
