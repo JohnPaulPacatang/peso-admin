@@ -67,13 +67,13 @@ const EmployerSidebar = () => {
       {/* Sidebar */}
       <div className="w-full bg-white p-4 flex flex-col overflow-hidden">
         <p className="text-xs text-gray-500 text-center">© 2025 John Paul Pacatang. Rights reserved.</p>
-        <hr className='m-2'></hr>
+        <hr className='my-1'></hr>
         <div className="flex flex-col items-center justify-center px-3">
           <h1 className="text-xl font-bold text-center px-5 py-2 text-orange-500 ">
             Public Employment <br /> Service Office
           </h1>
         </div>
-        <hr className='m-2'></hr>
+        <hr className='my-1'></hr>
 
         {/* Profile Section */}
         <div className="flex flex-col items-center my-4">

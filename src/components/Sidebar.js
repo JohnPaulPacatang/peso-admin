@@ -10,6 +10,7 @@ import {
   CiBellOn,
   CiBullhorn,
 } from "react-icons/ci";
+import { PiUserGearThin } from "react-icons/pi";
 import Profile from '../assets/peso-logo.webp';
 
 const Sidebar = () => {
@@ -44,13 +45,13 @@ const Sidebar = () => {
       {/* Sidebar */}
       <div className="w-full bg-white p-6 flex flex-col overflow-hidden">
         <p className="text-xs text-gray-500 text-center">© 2025 John Paul Pacatang. Rights reserved.</p>
-        <hr className='m-2'></hr>
+        <hr className='my-1'></hr>
         <div className="flex flex-col items-center justify-center px-3">
           <h1 className="text-xl font-bold text-center px-5 py-2 text-orange-500 ">
             Public Employment <br /> Service Office
           </h1>
         </div>
-        <hr className='m-2'></hr>
+        <hr className='my-1'></hr>
 
 
         {/* Profile Section */}
@@ -88,6 +89,10 @@ const Sidebar = () => {
           <Link to="/admin/manage-employers" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/manage-account')} rounded-lg transition duration-300`}>
             <SiAwssecretsmanager className="mr-2 text-xl" />
             Manage Employers
+          </Link>
+          <Link to="/admin/manage-users" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/manage-account')} rounded-lg transition duration-300`}>
+            <PiUserGearThin className="mr-2 text-xl" />
+            Manage Users
           </Link>
         </nav>
 

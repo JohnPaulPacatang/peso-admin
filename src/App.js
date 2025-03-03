@@ -19,7 +19,7 @@ import ForgotPassword from "./components/ForgotPasswordAdmin";
 import EditJobs from "./pages/EditJobs";
 import EmployerEditJobs from "./pages/EmployerEditJobs";
 import JobApplicantsPage from "./pages/Applicants";
-// import ManageUsers from "./pages/Manageusers";
+import ManageUsers from "./pages/ManageUsers";
 
 function App() {
   return (
@@ -99,7 +99,7 @@ function MainApp() {
               <Route path="/admin/announcement" element={<Announcement />} />
               <Route path="/admin/post-announcement" element={<PostAnnouncement />} />
               <Route path="/admin/manage-employers" element={<ManageEmployerAccounts />} />
-              {/* <Route path="/admin/manage-users" element={<ManageUsers />} /> */}
+              <Route path="/admin/manage-users" element={<ManageUsers />} />
            
             </>
           ) : (

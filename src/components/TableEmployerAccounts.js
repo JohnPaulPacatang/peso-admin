@@ -26,7 +26,7 @@ const ManageEmployerAccounts = () => {
             setIsLoading(true);
             try {
                 let employersQuery;
-              
+
                 if (searchTerm.trim() !== "") {
                     // Search by companyName in database
                     employersQuery = query(
@@ -53,7 +53,7 @@ const ManageEmployerAccounts = () => {
                 setIsLoading(false);
             }
         };
- 
+
         const debounceTimer = setTimeout(() => {
             fetchEmployers();
         }, 500);
