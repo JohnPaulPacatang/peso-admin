@@ -9,7 +9,6 @@ import {
   CiUser,
 } from "react-icons/ci";
 import defaultProfile from '../assets/user.png';
-import mainLogo from '../assets/mainLogo.png';
 
 const EmployerSidebar = () => {
   const location = useLocation();
@@ -27,10 +26,9 @@ const EmployerSidebar = () => {
   useEffect(() => {
     loadEmployerData();
 
-    // Listen for changes in localStorage (profile updates)
     const handleStorageChange = (event) => {
       if (event.key === 'employer') {
-        loadEmployerData(); // Reload profile details dynamically
+        loadEmployerData();
       }
     };
 
@@ -67,14 +65,18 @@ const EmployerSidebar = () => {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className="w-full bg-white p-6 flex flex-col overflow-hidden">
-        {/* Logo Section */}
-        <div className="flex items-center justify-center p-4">
-          <img className="w-auto h-12" src={mainLogo} alt="logo" />
+      <div className="w-full bg-white p-4 flex flex-col overflow-hidden">
+        <p className="text-xs text-gray-500 text-center">© 2025 John Paul Pacatang. Rights reserved.</p>
+        <hr className='m-2'></hr>
+        <div className="flex flex-col items-center justify-center px-3">
+          <h1 className="text-xl font-bold text-center px-5 py-2 text-orange-500 ">
+            Public Employment <br /> Service Office
+          </h1>
         </div>
+        <hr className='m-2'></hr>
 
         {/* Profile Section */}
-        <div className="flex flex-col items-center mb-6">
+        <div className="flex flex-col items-center my-4">
           <img
             src={companyLogo || defaultProfile}
             alt="Company Logo"

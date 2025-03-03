@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaUserCircle, FaCheckCircle, FaPaperPlane, FaUsers } from "react-icons/fa";
 import { db } from "../firebase";
-import { collection, query, getDocs, orderBy, limit } from "firebase/firestore";
+import { collection, query, getDocs } from "firebase/firestore";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import moment from "moment";
 
@@ -101,7 +101,7 @@ function Dashboard() {
   const [weeklyApplications, setWeeklyApplications] = useState([]);
   const [employerRankings, setEmployerRankings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [chartView, setChartView] = useState('week'); // 'week', 'month', 'year'
+  const [chartView, setChartView] = useState('week'); 
   const [companyApplications, setCompanyApplications] = useState({});
 
   useEffect(() => {

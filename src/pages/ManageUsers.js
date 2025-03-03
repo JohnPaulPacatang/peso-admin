@@ -1,14 +1,14 @@
 import React from 'react'
-import ManageAccountsTable from '../components/TableAccounts'
+import TableUsers from '../components/TableUsers'
 
-const ManageAccounts = () => {
+const ManageUsers = () => {
     return (
         <div className="h-screen flex flex-col bg-green-50 overflow-hidden corner-radius">
             <div className="flex-1 overflow-y-scroll ">
-                <ManageAccountsTable />
+             
             </div>
         </div>
     )
 }
 
-export default ManageAccounts
+export default ManageUsers

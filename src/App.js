@@ -8,7 +8,7 @@ import MyJobs from "./pages/MyJobs";
 import PostJob from "./pages/PostJob";
 import Announcement from "./pages/Announcement";
 import PostAnnouncement from "./pages/PostAnnouncement";
-import ManageAccounts from "./pages/ManageAccounts";
+import ManageEmployerAccounts from "./pages/ManageEmployerAccounts";
 import EmployerSignup from "./components/EmployerSignup";
 import EmployerSidebar from "./components/EmployerSidebar";
 import EmployerDashboard from "./pages/EmployerDashboard";
@@ -19,7 +19,7 @@ import ForgotPassword from "./components/ForgotPasswordAdmin";
 import EditJobs from "./pages/EditJobs";
 import EmployerEditJobs from "./pages/EmployerEditJobs";
 import JobApplicantsPage from "./pages/Applicants";
-
+// import ManageUsers from "./pages/Manageusers";
 
 function App() {
   return (
@@ -98,7 +98,8 @@ function MainApp() {
               <Route path="/admin/submit-job" element={<PostJob />} />
               <Route path="/admin/announcement" element={<Announcement />} />
               <Route path="/admin/post-announcement" element={<PostAnnouncement />} />
-              <Route path="/admin/manage-account" element={<ManageAccounts />} />
+              <Route path="/admin/manage-employers" element={<ManageEmployerAccounts />} />
+              {/* <Route path="/admin/manage-users" element={<ManageUsers />} /> */}
            
             </>
           ) : (

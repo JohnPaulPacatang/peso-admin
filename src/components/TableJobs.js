@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
+import { CiSearch } from "react-icons/ci";
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-hot-toast";
@@ -11,8 +12,12 @@ import 'jspdf-autotable';
 const Jobs = () => {
     const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
+    const [filteredJobs, setFilteredJobs] = useState([]);
     const [selectedJob, setSelectedJob] = useState(null);
-    const [sortOption, setSortOption] = useState('active');
+    const [sortOption, setSortOption] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [companies, setCompanies] = useState([]);
+    const [selectedCompany, setSelectedCompany] = useState('all');
     const dropdownRef = useRef(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [applicantCounts, setApplicantCounts] = useState({});
@@ -25,8 +30,8 @@ const Jobs = () => {
     // Calculate pagination values
     const indexOfLastJob = currentPage * jobsPerPage;
     const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-    const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
-    const totalPages = Math.ceil(jobs.length / jobsPerPage);
+    const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
+    const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
 
     // Function to change page
     const paginate = (pageNumber) => {
@@ -58,7 +63,7 @@ const Jobs = () => {
         };
 
         fetchApplicantCounts();
-    }, [jobs])
+    }, [jobs]);
 
     useEffect(() => {
         const fetchJobs = async (sortValue) => {
@@ -97,7 +102,12 @@ const Jobs = () => {
 
                 fetchedJobs.sort((a, b) => (b.jobPosted ? b.jobPosted.getTime() : 0) - (a.jobPosted ? a.jobPosted.getTime() : 0));
 
+                // Extract unique companies for the filter dropdown
+                const uniqueCompanies = [...new Set(fetchedJobs.map(job => job.company))];
+                setCompanies(uniqueCompanies);
+
                 setJobs(fetchedJobs);
+                setFilteredJobs(fetchedJobs);
                 setCurrentPage(1);
             } catch (error) {
                 console.error('Error fetching jobs:', error);
@@ -109,6 +119,34 @@ const Jobs = () => {
         fetchJobs(sortOption);
     }, [sortOption]);
 
+    // Apply filters when search term or company selection changes
+    useEffect(() => {
+        const debounceTimer = setTimeout(() => {
+            filterJobs();
+        }, 500);
+
+        return () => clearTimeout(debounceTimer);
+    }, [searchTerm, selectedCompany, jobs]);
+
+    const filterJobs = () => {
+        let result = [...jobs];
+
+        // Filter by job title search
+        if (searchTerm.trim() !== '') {
+            const searchLower = searchTerm.toLowerCase();
+            result = result.filter(job =>
+                job.title.toLowerCase().includes(searchLower)
+            );
+        }
+
+        // Filter by company
+        if (selectedCompany !== 'all') {
+            result = result.filter(job => job.company === selectedCompany);
+        }
+
+        setFilteredJobs(result);
+        setCurrentPage(1);
+    };
 
     const handleDeleteClick = (job) => {
         setSelectedJob(job);
@@ -121,6 +159,7 @@ const Jobs = () => {
                 await deleteDoc(doc(db, "jobs", selectedJob.id));
 
                 setJobs(prevJobs => prevJobs.filter(job => job.id !== selectedJob.id));
+                setFilteredJobs(prevJobs => prevJobs.filter(job => job.id !== selectedJob.id));
 
                 setIsDeleteConfirmOpen(false);
                 setSelectedJob(null);
@@ -168,7 +207,6 @@ const Jobs = () => {
         });
     };
 
-
     const handleToggleJobStatus = async (job) => {
         const togglePromise = new Promise(async (resolve, reject) => {
             try {
@@ -177,11 +215,14 @@ const Jobs = () => {
 
                 await updateDoc(jobRef, { isOpen: newStatus });
 
-                setJobs((prevJobs) =>
-                    prevJobs.map((j) =>
-                        j.id === job.id ? { ...j, isOpen: newStatus } : j
-                    )
+                const updatedJobs = jobs.map((j) =>
+                    j.id === job.id ? { ...j, isOpen: newStatus } : j
                 );
+
+                setJobs(updatedJobs);
+                setFilteredJobs(filteredJobs.map((j) =>
+                    j.id === job.id ? { ...j, isOpen: newStatus } : j
+                ));
 
                 resolve(`Job marked as ${newStatus ? "Open" : "Closed"}`);
             } catch (error) {
@@ -197,7 +238,6 @@ const Jobs = () => {
         });
     };
 
-
     const handleExportPDF = () => {
         const doc = new jsPDF('portrait', 'mm', 'a4');
 
@@ -211,7 +251,7 @@ const Jobs = () => {
         doc.setFont('helvetica', 'normal');
         doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
 
-        const tableData = jobs.map(job => [
+        const tableData = filteredJobs.map(job => [
             job.title,
             job.company,
             job.location,
@@ -263,6 +303,15 @@ const Jobs = () => {
         };
     }, [isDeleteConfirmOpen]);
 
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
+
+    const clearSearch = () => {
+        setSearchTerm('');
+    };
+
 
     if (isLoading) {
         return (
@@ -280,21 +329,49 @@ const Jobs = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Job Listings</h1>
                     <div className="flex flex-wrap items-center space-x-4">
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            className="border border-gray-300 px-4 py-2 rounded-3xl text-sm"
-                        />
-                        <p className="font-semibold mb-2 sm:mb-0">Sort by:</p>
-                        <select
-                            value={sortOption}
-                            onChange={(e) => setSortOption(e.target.value)}
-                            className="border border-gray-300 rounded-full py-2 px-4 text-sm font-semibold text-gray-700 mb-2 sm:mb-0"
-                        >
-                            <option value="all">All Jobs</option>
-                            <option value="open">Open</option>
-                            <option value="closed">Closed</option>
-                        </select>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search by Job Title..."
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-3xl text-sm w-64 md:w-80"
+                            />
+                            <CiSearch className="absolute left-3 top-2.5 text-gray-400 text-lg" />
+                            {searchTerm && (
+                                <button
+                                    onClick={clearSearch}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-full text-xs"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <p className="font-semibold mb-2 sm:mb-0">Status:</p>
+                            <select
+                                value={sortOption}
+                                onChange={(e) => setSortOption(e.target.value)}
+                                className="border border-gray-300 rounded-full py-2 px-4 text-sm font-semibold text-gray-700 mb-2 sm:mb-0"
+                            >
+                                <option value="all">All Jobs</option>
+                                <option value="open">Open</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <p className="font-semibold mb-2 sm:mb-0">Company:</p>
+                            <select
+                                value={selectedCompany}
+                                onChange={(e) => setSelectedCompany(e.target.value)}
+                                className="border border-gray-300 rounded-full py-2 px-4 text-sm font-semibold text-gray-700 mb-2 sm:mb-0"
+                            >
+                                <option value="all">All Companies</option>
+                                {companies.map((company) => (
+                                    <option key={company} value={company}>{company}</option>
+                                ))}
+                            </select>
+                        </div>
                         <button
                             onClick={handleExportPDF}
                             className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
@@ -322,73 +399,80 @@ const Jobs = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentJobs.map((job) => (
-                                <tr key={job.id} className="border-b border-gray-200">
-                                    <td className="px-3 py-3 text-sm text-gray-700">{job.title}</td>
-                                    <td className="px-3 py-3 text-sm text-gray-700">{job.company}</td>
-                                    <td className="px-3 py-3 text-sm text-gray-700">{job.location}</td>
-                                    <td className="px-3 py-3 text-sm text-gray-700">{job.salaryMin} - {job.salaryMax}</td>
-                                    <td className="px-3 py-3 text-sm text-gray-700">
-                                        {job.jobPosted ? job.jobPosted.toLocaleDateString('en-US') : 'N/A'}
-                                    </td>
-                                    <td className="px-3 py-3 text-sm text-gray-700">
-                                        <div className="flex items-center space-x-2">
-                                            <button
-                                                onClick={() => navigate(`/admin/jobs/${job.id}/applicants`)}
-                                                className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-1 rounded-full text-xs font-semibold"
-                                            >
-                                                {applicantCounts[job.id] || 0} applicants
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td className="px-3 py-3 text-sm">
-                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.isOpen
-                                            ? 'bg-green-100 text-green-600'
-                                            : 'bg-red-100 text-red-600'
-                                            }`}>
-                                            {job.isOpen ? 'Open' : 'Closed'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-3xl text-gray-700 relative">
-                                        <button className="text-gray-500 hover:text-blue-700" onClick={() => handleActionClick(job)}>
-                                            <AiOutlineEllipsis />
-                                        </button>
-                                        {selectedJob && selectedJob.id === job.id && (
-                                            <div ref={dropdownRef} className="absolute bg-white border shadow-md mt-2 top-10 rounded-md py-2 w-36 right-4 z-10">
-                                                <button onClick={() => handleUpdate(job)} className="flex items-center w-full text-sm text-gray-700 hover:bg-gray-100 py-2 px-4">
-                                                    <AiOutlineEdit className="mr-2" />
-                                                    Edit
-                                                </button>
-
-                                                <button onClick={() => handleDeleteClick(job)} className="flex items-center w-full text-sm text-red-600 hover:bg-gray-100 py-2 px-4">
-                                                    <AiOutlineDelete className="mr-2" />
-                                                    Delete
-                                                </button>
-                                                <button
-                                                    onClick={() => handleToggleJobStatus(job)}
-                                                    className="flex items-center w-full text-sm text-blue-600 hover:bg-gray-100 py-2 px-4"
-                                                >
-                                                    <AiOutlineEdit className="mr-2" />
-                                                    <span>Mark {job.isOpen ? 'Closed' : 'Open'}</span>
-                                                </button>
-                                            </div>
-                                        )}
+                            {currentJobs.length === 0 ? (
+                                <tr>
+                                    <td colSpan="8" className="px-4 py-4 text-center text-gray-500">
+                                        No jobs found matching your search criteria.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                currentJobs.map((job) => (
+                                    <tr key={job.id} className="border-b border-gray-200">
+                                        <td className="px-3 py-3 text-sm text-gray-700">{job.title}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">{job.company}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">{job.location}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">{job.salaryMin} - {job.salaryMax}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">
+                                            {job.jobPosted ? job.jobPosted.toLocaleDateString('en-US') : 'N/A'}
+                                        </td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">
+                                            <div className="flex items-center space-x-2">
+                                                <button
+                                                    onClick={() => navigate(`/admin/jobs/${job.id}/applicants`)}
+                                                    className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-1 rounded-full text-xs font-semibold"
+                                                >
+                                                    {applicantCounts[job.id] || 0} applicants
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td className="px-3 py-3 text-sm">
+                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.isOpen
+                                                ? 'bg-green-100 text-green-600'
+                                                : 'bg-red-100 text-red-600'
+                                                }`}>
+                                                {job.isOpen ? 'Open' : 'Closed'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-3xl text-gray-700 relative">
+                                            <button className="text-gray-500 hover:text-blue-700" onClick={() => handleActionClick(job)}>
+                                                <AiOutlineEllipsis />
+                                            </button>
+                                            {selectedJob && selectedJob.id === job.id && (
+                                                <div ref={dropdownRef} className="absolute bg-white border shadow-md mt-2 top-10 rounded-md py-2 w-36 right-4 z-10">
+                                                    <button onClick={() => handleUpdate(job)} className="flex items-center w-full text-sm text-gray-700 hover:bg-gray-100 py-2 px-4">
+                                                        <AiOutlineEdit className="mr-2" />
+                                                        Edit
+                                                    </button>
+                                                    <button onClick={() => handleDeleteClick(job)} className="flex items-center w-full text-sm text-red-600 hover:bg-gray-100 py-2 px-4">
+                                                        <AiOutlineDelete className="mr-2" />
+                                                        Delete
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleToggleJobStatus(job)}
+                                                        className="flex items-center w-full text-sm text-blue-600 hover:bg-gray-100 py-2 px-4"
+                                                    >
+                                                        <AiOutlineEdit className="mr-2" />
+                                                        <span>Mark {job.isOpen ? 'Closed' : 'Open'}</span>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
 
-                    {/* Pagination Section */}
+
                     <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
                         <div className="flex-1 flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{indexOfFirstJob + 1}</span> to{" "}
+                                    Showing <span className="font-medium">{filteredJobs.length > 0 ? indexOfFirstJob + 1 : 0}</span> to{" "}
                                     <span className="font-medium">
-                                        {Math.min(indexOfLastJob, jobs.length)}
+                                        {Math.min(indexOfLastJob, filteredJobs.length)}
                                     </span>{" "}
-                                    of <span className="font-medium">{jobs.length}</span> results
+                                    of <span className="font-medium">{filteredJobs.length}</span> results
                                 </p>
                             </div>
                             <div>

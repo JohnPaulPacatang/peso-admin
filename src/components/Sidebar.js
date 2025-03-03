@@ -10,8 +10,7 @@ import {
   CiBellOn,
   CiBullhorn,
 } from "react-icons/ci";
-import Profile from '../assets/user.png';
-import mainLogo from '../assets/mainLogo.png';
+import Profile from '../assets/peso-logo.webp';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -43,18 +42,23 @@ const Sidebar = () => {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className="w-full bg-white p-4 flex flex-col overflow-hidden">
-        {/* Logo Section */}
-        <div className="flex items-center justify-center p-4">
-          <img className="w-auto h-12" src={mainLogo} alt="logo" />
+      <div className="w-full bg-white p-6 flex flex-col overflow-hidden">
+        <p className="text-xs text-gray-500 text-center">© 2025 John Paul Pacatang. Rights reserved.</p>
+        <hr className='m-2'></hr>
+        <div className="flex flex-col items-center justify-center px-3">
+          <h1 className="text-xl font-bold text-center px-5 py-2 text-orange-500 ">
+            Public Employment <br /> Service Office
+          </h1>
         </div>
+        <hr className='m-2'></hr>
+
 
         {/* Profile Section */}
-        <div className="flex flex-col items-center mb-6">
+        <div className="flex flex-col items-center my-4">
           <img
             src={Profile}
             alt="Profile"
-            className="rounded-full h-12 w-12 object-cover"
+            className="rounded-full h-16 w-16 object-cover"
           />
           <span className="text-lg mt-2">Administrator</span>
         </div>
@@ -81,9 +85,9 @@ const Sidebar = () => {
             <CiBullhorn className="mr-2 text-xl" />
             Post Announcement
           </Link>
-          <Link to="/admin/manage-account" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/manage-account')} rounded-lg transition duration-300`}>
+          <Link to="/admin/manage-employers" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/manage-account')} rounded-lg transition duration-300`}>
             <SiAwssecretsmanager className="mr-2 text-xl" />
-            Manage Account
+            Manage Employers
           </Link>
         </nav>
 

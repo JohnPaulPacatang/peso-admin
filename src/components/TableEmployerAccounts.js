@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
+import { CiSearch } from "react-icons/ci";
 import { db } from '../firebase';
-import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
-const ManageAccountsTable = () => {
+const ManageEmployerAccounts = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [accounts, setAccounts] = useState([]);
     const [selectedAccount, setSelectedAccount] = useState(null);
@@ -24,27 +25,43 @@ const ManageAccountsTable = () => {
         const fetchEmployers = async () => {
             setIsLoading(true);
             try {
-                const querySnapshot = await getDocs(collection(db, 'employers'));
+                let employersQuery;
+              
+                if (searchTerm.trim() !== "") {
+                    // Search by companyName in database
+                    employersQuery = query(
+                        collection(db, "employers"),
+                        where("companyName", ">=", searchTerm),
+                        where("companyName", "<=", searchTerm + "\uf8ff")
+                    );
+                } else {
+                    // If no search term, fetch all employers
+                    employersQuery = collection(db, "employers");
+                }
+
+                const querySnapshot = await getDocs(employersQuery);
                 const employersData = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
+
                 setAccounts(employersData);
             } catch (error) {
                 console.error('Error fetching employers:', error);
+                toast.error("Failed to fetch employers");
             } finally {
                 setIsLoading(false);
             }
         };
+ 
+        const debounceTimer = setTimeout(() => {
+            fetchEmployers();
+        }, 500);
 
-        fetchEmployers();
-    }, []);
+        return () => clearTimeout(debounceTimer);
+    }, [searchTerm]);
 
-    const filteredAccounts = accounts.filter((account) =>
-        account.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        account.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        account.contact_person_name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredAccounts = accounts;
 
     // Pagination logic
     const indexOfLastAccount = currentPage * accountsPerPage;
@@ -146,7 +163,9 @@ const ManageAccountsTable = () => {
     const truncateText = (text, maxLength = 30) => {
         if (!text) return '';
         return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-    }; const handleExportPDF = () => {
+    };
+
+    const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         const marginX = 10;
@@ -207,9 +226,15 @@ const ManageAccountsTable = () => {
         };
     }, []);
 
-    useEffect(() => {
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
         setCurrentPage(1);
-    }, [searchTerm]);
+    };
+
+    const clearSearch = () => {
+        setSearchTerm('');
+    };
+
 
     if (isLoading) {
         return (
@@ -226,13 +251,24 @@ const ManageAccountsTable = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Manage Employers</h1>
                     <div className="flex space-x-2">
-                        <input
-                            type="text"
-                            placeholder="Search by Company, Email or Contact Person..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="border border-gray-300 px-4 py-2 rounded-3xl text-sm w-64 md:w-80"
-                        />
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search by Company Name..."
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-3xl text-sm w-64 md:w-80"
+                            />
+                            <CiSearch className="absolute left-3 top-2.5 text-gray-400 text-lg" />
+                            {searchTerm && (
+                                <button
+                                    onClick={clearSearch}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-full text-xs"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                        </div>
                         <button
                             onClick={handleExportPDF}
                             className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
@@ -259,67 +295,75 @@ const ManageAccountsTable = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentAccounts.map((account, index) => (
-                                <tr key={account.id || index} className="border-b border-gray-200 hover:bg-gray-50">
-                                    <td className="px-3 py-4 text-sm text-gray-700">{account.companyName}</td>
-                                    <td className="px-3 py-4 text-sm text-gray-700">{account.email}</td>
-                                    <td className="px-3 py-4 text-sm text-gray-700">{account.contact_person_name || '-'}</td>
-                                    <td className="px-3 py-4 text-sm text-gray-700">{truncateText(account.contact_person_email) || '-'}</td>
-                                    <td className="px-3 py-4 text-sm text-gray-700">{truncateText(account.company_address) || '-'}</td>
-                                    <td className="px-3 py-4 text-sm text-gray-700">
-                                        {account.business_permit ? (
-                                            <a
-                                                href={account.business_permit}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:text-blue-800 underline"
-                                            >
-                                                View
-                                            </a>
-                                        ) : '-'}
-                                    </td>
-                                    <td className="px-3 py-4 text-sm text-gray-700">
-                                        {account.verified ? (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                Verified
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Unverified
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-3 py-4 text-3xl text-gray-700 relative">
-                                        <button
-                                            className="text-gray-500 hover:text-blue-700"
-                                            onClick={() => handleActionClick(account)}
-                                        >
-                                            <AiOutlineEllipsis />
-                                        </button>
-                                        {selectedAccount && selectedAccount.id === account.id && (
-                                            <div
-                                                ref={dropdownRef}
-                                                className="absolute bg-white border shadow-md mt-2 top-5 rounded-md py-2 w-28 right-1 z-10"
-                                            >
-                                                <button
-                                                    onClick={() => handleEditClick(account)}
-                                                    className="flex items-center w-full text-sm text-gray-700 hover:bg-gray-100 py-2 px-4"
-                                                >
-                                                    <AiOutlineEdit className="mr-2" />
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteClick(account)}
-                                                    className="flex items-center w-full text-sm text-red-600 hover:bg-gray-100 py-2 px-4"
-                                                >
-                                                    <AiOutlineDelete className="mr-2" />
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        )}
+                            {filteredAccounts.length === 0 ? (
+                                <tr>
+                                    <td colSpan="8" className="px-4 py-4 text-center text-sm text-gray-500">
+                                        No company found
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                currentAccounts.map((account, index) => (
+                                    <tr key={account.id || index} className="border-b border-gray-200 hover:bg-gray-50">
+                                        <td className="px-3 py-4 text-sm text-gray-700">{account.companyName}</td>
+                                        <td className="px-3 py-4 text-sm text-gray-700">{account.email}</td>
+                                        <td className="px-3 py-4 text-sm text-gray-700">{account.contact_person_name || '-'}</td>
+                                        <td className="px-3 py-4 text-sm text-gray-700">{truncateText(account.contact_person_email) || '-'}</td>
+                                        <td className="px-3 py-4 text-sm text-gray-700">{truncateText(account.company_address) || '-'}</td>
+                                        <td className="px-3 py-4 text-sm text-gray-700">
+                                            {account.business_permit ? (
+                                                <a
+                                                    href={account.business_permit}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-800 underline"
+                                                >
+                                                    View
+                                                </a>
+                                            ) : '-'}
+                                        </td>
+                                        <td className="px-3 py-4 text-sm text-gray-700">
+                                            {account.verified ? (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Verified
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    Unverified
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-3 py-4 text-3xl text-gray-700 relative">
+                                            <button
+                                                className="text-gray-500 hover:text-blue-700"
+                                                onClick={() => handleActionClick(account)}
+                                            >
+                                                <AiOutlineEllipsis />
+                                            </button>
+                                            {selectedAccount && selectedAccount.id === account.id && (
+                                                <div
+                                                    ref={dropdownRef}
+                                                    className="absolute bg-white border shadow-md mt-2 top-5 rounded-md py-2 w-28 right-1 z-10"
+                                                >
+                                                    <button
+                                                        onClick={() => handleEditClick(account)}
+                                                        className="flex items-center w-full text-sm text-gray-700 hover:bg-gray-100 py-2 px-4"
+                                                    >
+                                                        <AiOutlineEdit className="mr-2" />
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteClick(account)}
+                                                        className="flex items-center w-full text-sm text-red-600 hover:bg-gray-100 py-2 px-4"
+                                                    >
+                                                        <AiOutlineDelete className="mr-2" />
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
 
@@ -327,12 +371,13 @@ const ManageAccountsTable = () => {
                         <div className="flex-1 flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium,">{indexOfFirstAccount + 1}</span> to{" "}
+                                    Showing <span className="font-medium">{filteredAccounts.length > 0 ? indexOfFirstAccount + 1 : 0}</span> to{" "}
                                     <span className="font-medium">
                                         {Math.min(indexOfLastAccount, filteredAccounts.length)}
                                     </span>{" "}
                                     of <span className="font-medium">{filteredAccounts.length}</span> results
                                 </p>
+
                             </div>
                             <div>
                                 <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
@@ -541,4 +586,4 @@ const ManageAccountsTable = () => {
     );
 };
 
-export default ManageAccountsTable;
+export default ManageEmployerAccounts;
