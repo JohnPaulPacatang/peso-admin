@@ -119,7 +119,7 @@ const Jobs = () => {
         fetchJobs(sortOption);
     }, [sortOption]);
 
-    // Apply filters when search term or company selection changes
+   
     useEffect(() => {
         const debounceTimer = setTimeout(() => {
             filterJobs();

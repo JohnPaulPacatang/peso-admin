@@ -4,21 +4,24 @@ import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopu
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+console.log('API Key:', process.env.FIREBASE_API_KEY);
+console.log('All env vars:', process.env);
+
 // Your Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBUU5M-3o0wJt_8l6-w9jY-J4Yonewo3vM",
-  authDomain: "peso-system-12950.firebaseapp.com",
-  projectId: "peso-system-12950",
-  storageBucket: "peso-system-12950.firebasestorage.app",
-  messagingSenderId: "457755833156",
-  appId: "1:457755833156:web:dfb202aa4eef981f1c9d11",
-  measurementId: "G-Q7BRQ89CY7"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-export const db = getFirestore(app); 
-export const storage = getStorage(app); 
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 export { auth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup };
