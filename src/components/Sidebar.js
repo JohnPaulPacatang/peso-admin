@@ -44,7 +44,7 @@ const Sidebar = () => {
     <div className="flex h-screen">
       {/* Sidebar */}
       <div className="w-full bg-white p-6 flex flex-col overflow-hidden">
-        <p className="text-xs text-gray-500 text-center">© 2025 John Paul Pacatang. Rights reserved.</p>
+        <p className="text-xs text-gray-500 text-center">© 2025 John Paul Pacatang. Pagod nako.</p>
         <hr className='my-1'></hr>
         <div className="flex flex-col items-center justify-center px-3">
           <h1 className="text-xl font-bold text-center px-5 py-2 text-orange-500 ">
@@ -107,16 +107,25 @@ const Sidebar = () => {
 
       {/* Logout Confirmation Modal */}
       {isLogoutConfirmOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-4 w-96 sm:w-80 md:w-96 lg:w-1/5">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-              Are you sure you want to log out?
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-200">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-200 scale-100">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center tracking-tight">
+              Confirm Logout
             </h3>
-            <div className="flex justify-center space-x-4">
-              <button className="bg-red-600 text-white px-2 py-2 rounded-md text-base w-full sm:w-auto" onClick={confirmLogout}>
-                Yes, Log Out
+            <p className="text-gray-600 text-center mb-8 text-sm">
+              Are you sure you want to end your session?
+            </p>
+            <div className="flex gap-4 justify-center">
+              <button
+                className="flex-1 bg-red-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-red-700 focus:ring-4 focus:ring-red-200 focus:outline-none transition-colors duration-150 text-sm"
+                onClick={confirmLogout}
+              >
+                Log Out
               </button>
-              <button className="bg-gray-300 text-black px-2 py-2 rounded-md text-base w-full sm:w-auto" onClick={cancelLogout}>
+              <button
+                className="flex-1 bg-gray-200 text-gray-800 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 focus:outline-none transition-colors duration-150 text-sm"
+                onClick={cancelLogout}
+              >
                 Cancel
               </button>
             </div>

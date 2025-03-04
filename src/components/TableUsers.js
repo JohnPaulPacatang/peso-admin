@@ -185,13 +185,13 @@ const TableUsers = () => {
     doc.setFont('helvetica', 'normal');
     doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
 
-    const headers = [['Name', 'Email', 'Contact Number', 'Address', 'Guide Completed', 'Created At']];
+    const headers = [['Name', 'Email', 'Contact Number', 'Address', 'Verified', 'Created At']];
     const tableData = users.map(user => [
       user.name || 'N/A',
       user.email || 'N/A',
       user.contactNumber || 'N/A',
       user.address || 'N/A',
-      user.guideCompleted ? 'Yes' : 'No',
+      user.isVerified ? 'Yes' : 'No',
       user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'
     ]);
 
@@ -303,7 +303,7 @@ const TableUsers = () => {
                 <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Email</th>
                 <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Contact Number</th>
                 <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Address</th>
-                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Guide Completed</th>
+                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Verified</th>
                 <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Created At</th>
                 <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t rounded-tr-xl">Actions</th>
               </tr>
@@ -333,7 +333,7 @@ const TableUsers = () => {
                     <td className="px-3 py-4 text-sm text-gray-700">{user.contactNumber || '-'}</td>
                     <td className="px-3 py-4 text-sm text-gray-700">{truncateText(user.address) || '-'}</td>
                     <td className="px-3 py-4 text-sm text-gray-700">
-                      {user.guideCompleted ? (
+                      {user.isVerified ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-600">
                           Completed
                         </span>
@@ -503,11 +503,11 @@ const TableUsers = () => {
                 </div>
                 <div className="col-span-2 sm:col-span-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Guide Completed
+                    Verified
                   </label>
                   <div className="mt-2">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${editingUser.guideCompleted ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-600'}`}>
-                      {editingUser.guideCompleted ? 'Completed' : 'Not Completed'}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${editingUser.isVerified ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-600'}`}>
+                      {editingUser.isVerified ? 'Completed' : 'Not Completed'}
                     </span>
                   </div>
                 </div>
