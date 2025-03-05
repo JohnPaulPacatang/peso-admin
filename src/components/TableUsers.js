@@ -44,11 +44,11 @@ const TableUsers = () => {
           id: doc.id,
           ...doc.data(),
         }));
-   
+
         usersData.sort((a, b) => {
           const aTime = a.createdAt ? a.createdAt.seconds : 0;
           const bTime = b.createdAt ? b.createdAt.seconds : 0;
-          return bTime - aTime; 
+          return bTime - aTime;
         });
 
         setUsers(usersData);
@@ -439,16 +439,25 @@ const TableUsers = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96 lg:w-1/5">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
-              Are you sure you want to delete?
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-200">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-200 scale-100">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center tracking-tight">
+              Confirm Deletion
             </h3>
-            <div className="flex justify-center space-x-4">
-              <button className="bg-red-600 text-white px-4 py-2 rounded-md text-base w-full" onClick={confirmDelete}>
+            <p className="text-gray-600 text-center mb-8 text-sm">
+              Are you sure you want to delete this item? This action cannot be undone.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <button
+                className="flex-1 bg-red-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-red-700 focus:ring-4 focus:ring-red-200 focus:outline-none transition-colors duration-150 text-sm"
+                onClick={confirmDelete}
+              >
                 Yes, Delete
               </button>
-              <button className="bg-gray-300 text-black px-4 py-2 rounded-md text-base w-full" onClick={cancelDelete}>
+              <button
+                className="flex-1 bg-gray-200 text-gray-800 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 focus:outline-none transition-colors duration-150 text-sm"
+                onClick={cancelDelete}
+              >
                 Cancel
               </button>
             </div>

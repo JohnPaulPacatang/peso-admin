@@ -5,10 +5,12 @@ import { collection, query, where, getDocs, doc, getDoc, updateDoc } from "fireb
 import { toast } from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
+import { PiEyeThin, PiEyeSlashThin } from "react-icons/pi";
 
 function AdminEmployerLogin({ onLogin }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [animationState, setAnimationState] = useState("entering"); // entering, entered
     const navigate = useNavigate();
@@ -96,6 +98,10 @@ function AdminEmployerLogin({ onLogin }) {
         }
     };
 
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
     const animationStyles = {
         entering: "opacity-0",
         entered: "opacity-100"
@@ -125,7 +131,7 @@ function AdminEmployerLogin({ onLogin }) {
                 className={`w-full md:w-1/2 flex justify-center items-center bg-white transition-all duration-700 ease-in-out`}
             >
                 <div 
-                    className="w-full max-w-md p-6 shadow-lg rounded-xl bg-white transition-opacity duration-500 ease-in-out delay-300"
+                    className="w-full max-w-md p-8 shadow-lg rounded-xl bg-white transition-opacity duration-500 ease-in-out delay-300"
                     style={{ opacity: animationState === "entered" ? 1 : 0 }}
                 >
                     <h2 className="text-2xl font-bold text-center mb-6">Admin Log In</h2>
@@ -140,23 +146,37 @@ function AdminEmployerLogin({ onLogin }) {
                                 placeholder="Enter Your Email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition-all duration-300 ease-in-out hover:border-blue-200"
+                                className="w-full text-sm px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition-all duration-300 ease-in-out hover:border-blue-200"
                                 required
                             />
                         </div>
-                        <div className="mb-4">
+                        <div className="mb-4 relative">
                             <label className="block text-sm font-semibold mb-2" htmlFor="password">
                                 Password
                             </label>
-                            <input
-                                id="password"
-                                type="password"
-                                placeholder="Enter Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition-all duration-300 ease-in-out hover:border-blue-200"
-                                required
-                            />
+                            <div className="relative">
+                                <input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Enter Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full text-sm  px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition-all duration-300 ease-in-out hover:border-blue-200 pr-10"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={togglePasswordVisibility}
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-700 hover:text-gray-900 focus:outline-none"
+                                    aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? (
+                                        <PiEyeSlashThin size={20} />
+                                    ) : (
+                                        <PiEyeThin size={20} />
+                                    )}
+                                </button>
+                            </div>
                         </div>
                         <div className="mb-6 text-left">
                             <Link 
@@ -168,7 +188,7 @@ function AdminEmployerLogin({ onLogin }) {
                         </div>
                         <button
                             type="submit"
-                            className="w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 ease-in-out flex justify-center items-center hover:shadow-md focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 ease-in-out flex justify-center items-center hover:shadow-md focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={loading}
                         >
                             {loading ? <ClipLoader size={20} color="#ffffff" /> : "Login"}
