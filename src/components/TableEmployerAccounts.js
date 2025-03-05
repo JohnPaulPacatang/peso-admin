@@ -305,9 +305,32 @@ const ManageEmployerAccounts = () => {
                                 currentAccounts.map((account, index) => (
                                     <tr key={account.id || index} className="border-b border-gray-200 hover:bg-gray-50">
                                         <td className="px-3 py-4 text-sm text-gray-700">{account.companyName}</td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">{account.email}</td>
+                                        <td className="px-3 py-4 text-sm text-gray-700">
+                                            <a
+                                                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${account.email}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline"
+                                            >
+                                                {account.email}
+                                            </a>
+                                        </td>
                                         <td className="px-3 py-4 text-sm text-gray-700">{account.contact_person_name || '-'}</td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">{truncateText(account.contact_person_email) || '-'}</td>
+                                        <td className="px-3 py-4 text-sm text-gray-700">
+                                            {account.contact_person_email ? (
+                                                <a
+                                                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${account.contact_person_email}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline"
+                                                >
+                                                    {truncateText(account.contact_person_email)}
+                                                </a>
+                                            ) : (
+                                                '-'
+                                            )}
+                                        </td>
+
                                         <td className="px-3 py-4 text-sm text-gray-700">{truncateText(account.company_address) || '-'}</td>
                                         <td className="px-3 py-4 text-sm text-gray-700">
                                             {account.business_permit ? (
@@ -456,9 +479,9 @@ const ManageEmployerAccounts = () => {
 
             {/* Edit Modal */}
             {isEditModalOpen && editingAccount && (
-                <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl mx-4">
-                        <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-200">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-xl mx-4 transform transition-all duration-200 scale-100">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center tracking-tight">
                             Edit Employer Details
                         </h3>
                         <form onSubmit={handleSubmitEdit}>
@@ -472,7 +495,7 @@ const ManageEmployerAccounts = () => {
                                         name="companyName"
                                         value={editingAccount.companyName || ''}
                                         readOnly
-                                        className="w-full px-3 py-2 border bg-gray-50 text-gray-600 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border bg-gray-50 text-gray-600 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     />
                                 </div>
                                 <div className="col-span-2 sm:col-span-1">
@@ -484,20 +507,8 @@ const ManageEmployerAccounts = () => {
                                         name="email"
                                         value={editingAccount.email || ''}
                                         readOnly
-                                        className="w-full px-3 py-2 border bg-gray-50 text-gray-600 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border bg-gray-50 text-gray-600 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     />
-                                    {editingAccount.email && (
-                                        <div className="mt-2">
-                                            <a
-                                                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${editingAccount.email}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:text-blue-800 text-sm"
-                                            >
-                                                Send Email
-                                            </a>
-                                        </div>
-                                    )}
                                 </div>
                                 <div className="col-span-2 sm:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -508,7 +519,7 @@ const ManageEmployerAccounts = () => {
                                         name="contact_person_name"
                                         value={editingAccount.contact_person_name || ''}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     />
                                 </div>
                                 <div className="col-span-2 sm:col-span-1">
@@ -520,20 +531,8 @@ const ManageEmployerAccounts = () => {
                                         name="contact_person_email"
                                         value={editingAccount.contact_person_email || ''}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     />
-                                    {editingAccount.contact_person_email && (
-                                        <div className="mt-2">
-                                            <a
-                                                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${editingAccount.contact_person_email}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:text-blue-800 text-sm"
-                                            >
-                                                Send Email
-                                            </a>
-                                        </div>
-                                    )}
                                 </div>
                                 <div className="col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -544,7 +543,7 @@ const ManageEmployerAccounts = () => {
                                         name="company_address"
                                         value={editingAccount.company_address || ''}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     />
                                 </div>
                                 <div className="col-span-2">
@@ -556,7 +555,7 @@ const ManageEmployerAccounts = () => {
                                         name="business_permit"
                                         value={editingAccount.business_permit || ''}
                                         readOnly
-                                        className="w-full px-3 py-2 border bg-gray-50 text-gray-600 cursor-default border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                        className="w-full px-3 py-2 border bg-gray-50 text-gray-600 cursor-default border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     />
                                     {editingAccount.business_permit && (
                                         <div className="mt-2">
@@ -572,17 +571,17 @@ const ManageEmployerAccounts = () => {
                                     )}
                                 </div>
                             </div>
-                            <div className="mt-6 flex justify-end space-x-3">
+                            <div className="flex gap-4 justify-center mt-8">
                                 <button
                                     type="button"
-                                    className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                                    className="flex-1 bg-gray-200 text-gray-800 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 focus:outline-none transition-colors duration-150 text-sm"
                                     onClick={() => setIsEditModalOpen(false)}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                    className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 focus:outline-none transition-colors duration-150 text-sm"
                                 >
                                     Save Changes
                                 </button>

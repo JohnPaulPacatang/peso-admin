@@ -467,14 +467,14 @@ const TableUsers = () => {
 
       {/* Edit Modal */}
       {isEditModalOpen && editingUser && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl mx-4">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-200">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-200 scale-100">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center tracking-tight">
               Edit User Details
             </h3>
             <form onSubmit={handleSubmitEdit}>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="col-span-2 sm:col-span-1">
+              <div className="space-y-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Name
                   </label>
@@ -483,10 +483,10 @@ const TableUsers = () => {
                     name="name"
                     value={editingUser.name || ''}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
                 </div>
-                <div className="col-span-2 sm:col-span-1">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Email
                   </label>
@@ -495,10 +495,10 @@ const TableUsers = () => {
                     name="email"
                     value={editingUser.email || ''}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
                 </div>
-                <div className="col-span-2 sm:col-span-1">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Contact Number
                   </label>
@@ -507,10 +507,10 @@ const TableUsers = () => {
                     name="contactNumber"
                     value={editingUser.contactNumber || ''}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
                 </div>
-                <div className="col-span-2 sm:col-span-1">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Verified
                   </label>
@@ -520,7 +520,7 @@ const TableUsers = () => {
                     </span>
                   </div>
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Address
                   </label>
@@ -529,35 +529,33 @@ const TableUsers = () => {
                     name="address"
                     value={editingUser.address || ''}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
                 </div>
-                {/* Profile Image is commented out as requested
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Profile Image
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="profileImage"
-                                        value={editingUser.profileImage || ''}
-                                        readOnly
-                                        className="w-full px-3 py-2 border bg-gray-50 text-gray-600 cursor-default border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                </div>
-                                */}
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Profile Image
+                  </label>
+                  <input
+                    type="text"
+                    name="profileImage"
+                    value={editingUser.profileImage || ''}
+                    readOnly
+                    className="w-full px-3 py-2 border bg-gray-50 text-gray-600 cursor-default border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                </div> */}
               </div>
-              <div className="mt-6 flex justify-end space-x-3">
+              <div className="flex gap-4 justify-center mt-8">
                 <button
                   type="button"
-                  className="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className="flex-1 bg-gray-200 text-gray-800 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 focus:outline-none transition-colors duration-150 text-sm"
                   onClick={() => setIsEditModalOpen(false)}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 focus:outline-none transition-colors duration-150 text-sm"
                 >
                   Save Changes
                 </button>

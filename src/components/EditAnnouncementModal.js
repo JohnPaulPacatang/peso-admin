@@ -12,46 +12,56 @@ const EditAnnouncementModal = ({ announcement, isOpen, onClose, onSave }) => {
 
     return (
         isOpen && (
-            <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-                <div className="bg-white p-6 rounded-lg shadow-lg w-full sm:w-96 md:w-1/2 lg:w-1/3">
-                    <h2 className="text-xl font-semibold text-gray-700 mb-4">Edit Announcement</h2>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-600">Title</label>
-                        <input
-                            type="text"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            className="w-full border border-gray-300 px-4 py-2 rounded-md text-sm"
-                        />
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-200">
+                <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg mx-4 transform transition-all duration-200 scale-100">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center tracking-tight">
+                        Edit Announcement
+                    </h2>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Title
+                            </label>
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Description
+                            </label>
+                            <textarea
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                rows={8}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Location
+                            </label>
+                            <input
+                                type="text"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            />
+                        </div>
                     </div>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-600">Description</label>
-                        <textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            rows={8}
-                            className="w-full border border-gray-300 px-4 py-2 rounded-md text-sm"
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-600">Location</label>
-                        <input
-                            type="text"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            className="w-full border border-gray-300 px-4 py-2 rounded-md text-sm"
-                        />
-                    </div>
-                    <div className="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 mt-4">
+                    <div className="flex gap-4 justify-center mt-8">
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded-md w-full sm:w-auto"
+                            className="flex-1 bg-gray-200 text-gray-800 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 focus:outline-none transition-colors duration-150 text-sm"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
-                            className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md w-full sm:w-auto"
+                            className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 focus:outline-none transition-colors duration-150 text-sm"
                         >
                             Save
                         </button>
