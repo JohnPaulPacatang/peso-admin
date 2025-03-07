@@ -29,11 +29,20 @@ const EmployerProfileCard = () => {
     const [isChanged, setIsChanged] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState({ companyLogo: null, businessPermit: null });
     const [previewUrls, setPreviewUrls] = useState({ companyLogo: "", businessPermit: "" });
+    
+    // Add validation errors state
+    const [validationErrors, setValidationErrors] = useState({});
 
     // Loading states
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState({ companyLogo: false, businessPermit: false });
+
+    // Email validation function
+    const validateEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
 
     useEffect(() => {
         const fetchEmployerData = async () => {
@@ -170,6 +179,15 @@ const EmployerProfileCard = () => {
         const { name, value } = e.target;
         const newEmployer = { ...employer, [name]: value };
         setEmployer(newEmployer);
+        
+        // Clear validation error when field is changed
+        if (validationErrors[name]) {
+            setValidationErrors({
+                ...validationErrors,
+                [name]: null
+            });
+        }
+        
         checkChanges(newEmployer);
     };
 
@@ -177,7 +195,25 @@ const EmployerProfileCard = () => {
         setIsChanged(JSON.stringify(updatedEmployer) !== JSON.stringify(originalEmployer));
     };
 
+    const validateForm = () => {
+        const errors = {};
+        
+        // Validate contact person email if not empty
+        if (employer.contactPersonEmail && !validateEmail(employer.contactPersonEmail)) {
+            errors.contactPersonEmail = "Please enter a valid email address";
+        }
+        
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
     const handleSaveProfile = async () => {
+        // Validate form first
+        if (!validateForm()) {
+            toast.error("Please fix the validation errors before saving.");
+            return;
+        }
+        
         setIsSaving(true);
 
         const saveProfilePromise = new Promise(async (resolve, reject) => {
@@ -300,7 +336,24 @@ const EmployerProfileCard = () => {
                         </div>
                         <div>
                             <label className="block text-gray-600 mb-2 text-sm">Contact Person Email</label>
-                            <input type="email" name="contactPersonEmail" value={employer.contactPersonEmail} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm" />
+                            <input 
+                                type="email" 
+                                name="contactPersonEmail" 
+                                value={employer.contactPersonEmail} 
+                                onChange={handleChange} 
+                                className={`w-full border ${validationErrors.contactPersonEmail ? 'border-red-500' : 'border-gray-300'} rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm`} 
+                                onBlur={() => {
+                                    if (employer.contactPersonEmail && !validateEmail(employer.contactPersonEmail)) {
+                                        setValidationErrors({
+                                            ...validationErrors,
+                                            contactPersonEmail: "Please enter a valid email address"
+                                        });
+                                    }
+                                }}
+                            />
+                            {validationErrors.contactPersonEmail && (
+                                <p className="text-red-500 text-xs mt-1">{validationErrors.contactPersonEmail}</p>
+                            )}
                         </div>
                     </form>
                 </div>

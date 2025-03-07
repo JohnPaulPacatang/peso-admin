@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { BeatLoader } from "react-spinners";
 import { CiSearch } from "react-icons/ci";
+import { MdDeleteForever } from "react-icons/md";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import toast from 'react-hot-toast';
 
 const JobApplicants = () => {
     const [applications, setApplications] = useState([]);
@@ -17,6 +19,8 @@ const JobApplicants = () => {
     const { jobId } = useParams();
     const [currentPage, setCurrentPage] = useState(1);
     const [applicationsPerPage] = useState(15);
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [applicationToDelete, setApplicationToDelete] = useState(null);
 
     // Fetch all applications for this job once
     useEffect(() => {
@@ -52,6 +56,7 @@ const JobApplicants = () => {
                 setFilteredApplications(sortedApplications);
             } catch (error) {
                 console.error('Error fetching applications:', error);
+                toast.error("Failed to load applications");
             } finally {
                 setLoading(false);
             }
@@ -145,6 +150,55 @@ const JobApplicants = () => {
         window.open(doc.output('bloburl'), '_blank');
     };
 
+    // Delete functions
+    const openDeleteConfirm = (application) => {
+        setApplicationToDelete(application);
+        setIsDeleteConfirmOpen(true);
+    };
+
+    const cancelDelete = () => {
+        setIsDeleteConfirmOpen(false);
+        setApplicationToDelete(null);
+    };
+
+    const confirmDelete = () => {
+        if (!applicationToDelete) return;
+        
+        // Close the modal first for better UX
+        setIsDeleteConfirmOpen(false);
+        
+        // Use toast.promise to track the async operation
+        toast.promise(
+            deleteApplication(),
+            {
+                loading: 'Deleting application...',
+                success: 'Application deleted',
+                error: 'Failed to delete application'
+            }
+        );
+    };
+    
+    const deleteApplication = async () => {
+        try {
+            // Delete the application document from Firestore
+            await deleteDoc(doc(db, 'applications', applicationToDelete.id));
+            
+            // Update the state to remove the deleted application
+            const updatedApplications = applications.filter(app => app.id !== applicationToDelete.id);
+            setApplications(updatedApplications);
+            setFilteredApplications(updatedApplications);
+            
+            // Reset the application to delete
+            setApplicationToDelete(null);
+            
+            return true; // Return for toast.promise
+        } catch (error) {
+            console.error('Error deleting application:', error);
+            setApplicationToDelete(null);
+            throw error; // Throw for toast.promise to catch
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-screen">
@@ -204,6 +258,7 @@ const JobApplicants = () => {
                                     <th className="px-4 py-3 text-left text-sm font-semibold text-black">Address</th>
                                     <th className="px-4 py-3 text-left text-sm font-semibold text-black">Application Date</th>
                                     <th className="px-4 py-3 text-left text-sm font-semibold text-black">Resume</th>
+                                    <th className="px-4 py-3 text-center text-sm font-semibold text-black">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -231,11 +286,21 @@ const JobApplicants = () => {
                                                     View Resume
                                                 </a>
                                             </td>
+                                            <td className="px-4 py-3 text-sm text-gray-700 text-center">
+                                                <button
+                                                    onClick={() => openDeleteConfirm(application)}
+                                                    className="text-red-500 hover:text-red-700 focus:outline-none transition-colors duration-150"
+                                                    aria-label="Delete application"
+                                                    title="Delete application"
+                                                >
+                                                    <MdDeleteForever size={20} />
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="6" className="px-4 py-4 text-center text-sm text-gray-500">
+                                        <td colSpan="7" className="px-4 py-4 text-center text-sm text-gray-500">
                                             No applications found
                                         </td>
                                     </tr>
@@ -304,6 +369,34 @@ const JobApplicants = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Delete confirmation modal */}
+            {isDeleteConfirmOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-200">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-200 scale-100">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center tracking-tight">
+                            Confirm Deletion
+                        </h3>
+                        <p className="text-gray-600 text-center mb-8 text-sm">
+                            Are you sure you want to delete this application from {applicationToDelete?.applicantName}? This action cannot be undone.
+                        </p>
+                        <div className="flex gap-4 justify-center">
+                            <button
+                                className="flex-1 bg-red-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-red-700 focus:ring-4 focus:ring-red-200 focus:outline-none transition-colors duration-150 text-sm"
+                                onClick={confirmDelete}
+                            >
+                                Yes, Delete
+                            </button>
+                            <button
+                                className="flex-1 bg-gray-200 text-gray-800 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 focus:outline-none transition-colors duration-150 text-sm"
+                                onClick={cancelDelete}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
