@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { CiSearch } from "react-icons/ci";
 import { db } from '../firebase';
-import { collection, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc, query, where, addDoc } from 'firebase/firestore';
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import jsPDF from 'jspdf';
@@ -100,24 +100,38 @@ const TableUsers = () => {
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
-
+  
     const deletePromise = new Promise(async (resolve, reject) => {
       try {
+        // Store user data before deletion
+        const userData = {
+          userId: userToDelete.id,
+          email: userToDelete.email || 'N/A',
+          name: userToDelete.name || 'N/A',
+          deletedAt: new Date(),
+          accType: "user" 
+        };
+  
+        await addDoc(collection(db, "deleted_logs"), userData);
+ 
         await deleteDoc(doc(db, "profiles", userToDelete.id));
+        
+  
         setUsers(users.filter(user => user.id !== userToDelete.id));
         setIsDeleteConfirmOpen(false);
         setUserToDelete(null);
-        resolve("The user profile has been successfully deleted!");
+        
+        resolve("The user profile has been successfully deleted and logged!");
       } catch (error) {
-        console.error("Error deleting: ", error);
-        reject("Failed to delete the user profile. Please try again.");
+        console.error("Error in delete process: ", error);
+        reject("Failed to complete the delete operation. Please try again.");
       }
     });
-
+  
     toast.promise(deletePromise, {
       loading: "Deleting the profile, please wait...",
       success: "Deleted successfully!",
-      error: "Error deleting.",
+      error: "Error during deletion process.",
     });
   };
 
@@ -299,13 +313,13 @@ const TableUsers = () => {
           <table className="min-w-full border-gray-200 rounded-lg">
             <thead>
               <tr className="bg-gray-300">
-                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t rounded-tl-xl">Name</th>
-                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Email</th>
-                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Contact Number</th>
-                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Address</th>
-                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Verified</th>
-                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Created At</th>
-                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t rounded-tr-xl">Actions</th>
+                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-xl">Name</th>
+                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Email</th>
+                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Contact Number</th>
+                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Address</th>
+                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Verified</th>
+                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Created At</th>
+                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-xl">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -335,11 +349,11 @@ const TableUsers = () => {
                     <td className="px-3 py-4 text-sm text-gray-700">
                       {user.isVerified ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-600">
-                          Completed
+                          Verified
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600">
-                          Not Completed
+                          Not Verified
                         </span>
                       )}
                     </td>

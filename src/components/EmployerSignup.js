@@ -68,6 +68,7 @@ function EmployerSignup() {
                     email,
                     uid: user.uid,
                     verified: false,
+                    createdAt: new Date(),
                 });
 
                 resolve("Account created! Check your email to verify.");

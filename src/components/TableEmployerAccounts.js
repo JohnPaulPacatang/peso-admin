@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { CiSearch } from "react-icons/ci";
 import { db } from '../firebase';
-import { collection, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc, query, where, addDoc, orderBy } from 'firebase/firestore';
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import jsPDF from 'jspdf';
@@ -35,8 +35,10 @@ const ManageEmployerAccounts = () => {
                         where("companyName", "<=", searchTerm + "\uf8ff")
                     );
                 } else {
-                    // If no search term, fetch all employers
-                    employersQuery = collection(db, "employers");
+                    employersQuery = query(
+                        collection(db, "employers"),
+                        orderBy("createdAt", "desc") 
+                    );
                 }
 
                 const querySnapshot = await getDocs(employersQuery);
@@ -44,6 +46,19 @@ const ManageEmployerAccounts = () => {
                     id: doc.id,
                     ...doc.data(),
                 }));
+
+                
+                if (searchTerm.trim() !== "") {
+                    employersData.sort((a, b) => {
+                        if (!a.createdAt) return 1;
+                        if (!b.createdAt) return -1;
+                     
+                        const timeA = a.createdAt.toDate ? a.createdAt.toDate().getTime() : a.createdAt;
+                        const timeB = b.createdAt.toDate ? b.createdAt.toDate().getTime() : b.createdAt;
+
+                        return timeB - timeA; 
+                    });
+                }
 
                 setAccounts(employersData);
             } catch (error) {
@@ -97,24 +112,37 @@ const ManageEmployerAccounts = () => {
 
         const deletePromise = new Promise(async (resolve, reject) => {
             try {
+                const employerData = {
+                    employerId: accountToDelete.id,
+                    companyName: accountToDelete.companyName || 'N/A',
+                    email: accountToDelete.email || 'N/A',
+                    deletedAt: new Date(),
+                    accType: "employer"
+                };
+
+                await addDoc(collection(db, "deleted_logs"), employerData);
+
+                // Then delete the employer from employers collection
                 await deleteDoc(doc(db, "employers", accountToDelete.id));
+
+                // Update UI
                 setAccounts(accounts.filter(acc => acc.id !== accountToDelete.id));
                 setIsDeleteConfirmOpen(false);
                 setAccountToDelete(null);
-                resolve("The employer account has been successfully deleted!");
+
+                resolve("The employer account has been successfully deleted and logged!");
             } catch (error) {
-                console.error("Error deleting: ", error);
-                reject("Failed to delete the employer account. Please try again.");
+                console.error("Error in delete process: ", error);
+                reject("Failed to complete the delete operation. Please try again.");
             }
         });
 
         toast.promise(deletePromise, {
             loading: "Deleting the account, please wait...",
-            success: "Deleted successfully!",
-            error: "Error deleting.",
+            success: "Deleted successfully and logged to records!",
+            error: "Error during deletion process.",
         });
     };
-
     const cancelDelete = () => {
         setIsDeleteConfirmOpen(false);
         setAccountToDelete(null);
@@ -165,6 +193,12 @@ const ManageEmployerAccounts = () => {
         return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
     };
 
+    const formatCreatedDate = (createdAt) => {
+        if (!createdAt) return 'N/A';
+        const date = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    };
+
     const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -178,13 +212,14 @@ const ManageEmployerAccounts = () => {
         doc.setFont('helvetica', 'normal');
         doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
 
-        const headers = [['Company Name', 'Email', 'Contact Person', 'Contact Email', 'Address', 'Verified']];
+        const headers = [['Company Name', 'Email', 'Contact Person', 'Contact Email', 'Address', 'Created Date', 'Verified']];
         const tableData = accounts.map(acc => [
             acc.companyName || 'N/A',
             acc.email || 'N/A',
             acc.contact_person_name || 'N/A',
             acc.contact_person_email || 'N/A',
             acc.company_address || 'N/A',
+            formatCreatedDate(acc.createdAt),
             acc.verified ? 'Yes' : 'No'
         ]);
 
@@ -284,20 +319,21 @@ const ManageEmployerAccounts = () => {
                     <table className="min-w-full border-gray-200 rounded-lg">
                         <thead>
                             <tr className="bg-gray-300">
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t rounded-tl-xl">Company Name</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Email</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Contact Person</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Contact Email</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Address</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Permit</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t">Verified</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black border-t rounded-tr-xl">Actions</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-xl">Company Name</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Email</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Contact Person</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Contact Email</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Address</th>
+                                {/* <th className="px-3 py-3 text-left text-sm font-semibold text-black">Created Date</th> */}
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Permit</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Verified</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-xl">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredAccounts.length === 0 ? (
                                 <tr>
-                                    <td colSpan="8" className="px-4 py-4 text-center text-sm text-gray-500">
+                                    <td colSpan="9" className="px-4 py-4 text-center text-sm text-gray-500">
                                         No company found
                                     </td>
                                 </tr>
@@ -330,8 +366,8 @@ const ManageEmployerAccounts = () => {
                                                 '-'
                                             )}
                                         </td>
-
                                         <td className="px-3 py-4 text-sm text-gray-700">{truncateText(account.company_address) || '-'}</td>
+                                        {/* <td className="px-3 py-4 text-sm text-gray-700">{formatCreatedDate(account.createdAt)}</td> */}
                                         <td className="px-3 py-4 text-sm text-gray-700">
                                             {account.business_permit ? (
                                                 <a

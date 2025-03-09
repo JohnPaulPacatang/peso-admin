@@ -78,7 +78,7 @@ const Sidebar = () => {
             <CiSquarePlus className="mr-2 text-xl" />
             Post a Job
           </Link>
-          <Link to="/admin/announcement" className={`flex items-center p-2 text-gray-700 ${isActive('/announcement')} rounded-lg transition duration-300`}>
+          <Link to="/admin/announcement" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/announcement')} rounded-lg transition duration-300`}>
             <CiBellOn className="mr-2 text-xl" />
             Announcement
           </Link>
@@ -86,11 +86,11 @@ const Sidebar = () => {
             <CiBullhorn className="mr-2 text-xl" />
             Post Announcement
           </Link>
-          <Link to="/admin/manage-employers" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/manage-account')} rounded-lg transition duration-300`}>
+          <Link to="/admin/manage-employers" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/manage-employers')} rounded-lg transition duration-300`}>
             <SiAwssecretsmanager className="mr-2 text-xl" />
             Manage Employers
           </Link>
-          <Link to="/admin/manage-users" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/manage-account')} rounded-lg transition duration-300`}>
+          <Link to="/admin/manage-users" className={`flex items-center p-2 text-gray-700 ${isActive('/admin/manage-users')} rounded-lg transition duration-300`}>
             <PiUserGearThin className="mr-2 text-xl" />
             Manage Users
           </Link>
