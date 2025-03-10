@@ -20,6 +20,8 @@ import EditJobs from "./pages/EditJobs";
 import EmployerEditJobs from "./pages/EmployerEditJobs";
 import JobApplicantsPage from "./pages/Applicants";
 import ManageUsers from "./pages/ManageUsers";
+import DeletedLogsUser from "./pages/DeletedLogsUser";
+import DeletedLogsEmployers from "./pages/DeletedLogsEmployers";
 
 function App() {
   return (
@@ -99,7 +101,10 @@ function MainApp() {
               <Route path="/admin/announcement" element={<Announcement />} />
               <Route path="/admin/post-announcement" element={<PostAnnouncement />} />
               <Route path="/admin/manage-employers" element={<ManageEmployerAccounts />} />
+              <Route path="/admin/deleted-employers" element={<DeletedLogsEmployers />} />
               <Route path="/admin/manage-users" element={<ManageUsers />} />
+              <Route path="/admin/deleted-users" element={<DeletedLogsUser />} />
+              
            
             </>
           ) : (

@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { collection, getDocs, deleteDoc, doc, updateDoc, query, where, addDoc, orderBy } from 'firebase/firestore';
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
+import { Link } from "react-router-dom";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -37,7 +38,7 @@ const ManageEmployerAccounts = () => {
                 } else {
                     employersQuery = query(
                         collection(db, "employers"),
-                        orderBy("createdAt", "desc") 
+                        orderBy("createdAt", "desc")
                     );
                 }
 
@@ -47,16 +48,16 @@ const ManageEmployerAccounts = () => {
                     ...doc.data(),
                 }));
 
-                
+
                 if (searchTerm.trim() !== "") {
                     employersData.sort((a, b) => {
                         if (!a.createdAt) return 1;
                         if (!b.createdAt) return -1;
-                     
+
                         const timeA = a.createdAt.toDate ? a.createdAt.toDate().getTime() : a.createdAt;
                         const timeB = b.createdAt.toDate ? b.createdAt.toDate().getTime() : b.createdAt;
 
-                        return timeB - timeA; 
+                        return timeB - timeA;
                     });
                 }
 
@@ -285,7 +286,7 @@ const ManageEmployerAccounts = () => {
             <div className="max-w-8xl mx-auto py-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Manage Employers</h1>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-4">
                         <div className="relative">
                             <input
                                 type="text"
@@ -310,6 +311,12 @@ const ManageEmployerAccounts = () => {
                         >
                             Export PDF
                         </button>
+                        <Link
+                            to="/admin/deleted-employers"
+                            className="bg-red-600 text-white hover:bg-red-700 py-2 px-4 rounded-full text-sm font-semibold transition duration-300"
+                        >
+                            View Deleted Logs
+                        </Link>
                     </div>
                 </div>
             </div>

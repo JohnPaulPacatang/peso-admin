@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 import { PiEyeThin, PiEyeSlashThin } from "react-icons/pi";
+import pesoLogo from "../assets/peso-logo.webp"; 
 
 function AdminEmployerLogin({ onLogin }) {
     const [email, setEmail] = useState("");
@@ -111,8 +112,9 @@ function AdminEmployerLogin({ onLogin }) {
         <div 
             className={`flex flex-col md:flex-row h-screen overflow-hidden transition-opacity duration-500 ease-in-out ${animationStyles[animationState]}`}
         >
+            {/* Left side - Hide on mobile, show on medium screens and larger */}
             <div 
-                className={`w-full md:w-1/2 bg-green-50 flex flex-col justify-center items-center p-24 transition-all duration-700 ease-in-out`}
+                className={`hidden md:flex md:w-1/2 bg-green-50 flex-col justify-center items-center p-24 transition-all duration-700 ease-in-out`}
             >
                 <h1 
                     className="text-4xl font-extrabold mb-6 text-center transition-opacity duration-500 ease-in-out delay-100"
@@ -127,48 +129,61 @@ function AdminEmployerLogin({ onLogin }) {
                     Manage job postings, connect with candidates, and shape the future of work.
                 </p>
             </div>
-            <div 
-                className={`w-full md:w-1/2 flex justify-center items-center bg-white transition-all duration-700 ease-in-out`}
-            >
+
+            {/* Right side - Full width and centered on mobile, half width on medium screens and larger */}
+            <div className="w-full md:w-1/2 flex items-center justify-center bg-white px-4 py-6 min-h-screen">
                 <div 
-                    className="w-full max-w-md p-8 shadow-lg rounded-xl bg-white transition-opacity duration-500 ease-in-out delay-300"
+                    className="relative bg-white p-4 sm:p-6 md:p-8 w-full max-w-md border border-neutral-300 rounded-3xl transition-opacity duration-500 ease-in-out delay-300"
                     style={{ opacity: animationState === "entered" ? 1 : 0 }}
                 >
-                    <h2 className="text-2xl font-bold text-center mb-6">Admin Log In</h2>
-                    <form onSubmit={handleLogin}>
-                        <div className="mb-4">
-                            <label className="block text-sm font-semibold mb-2" htmlFor="email">
-                                Email Address
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2">
+                        <img src={pesoLogo} alt="PESO Logo" className="h-14 sm:h-16 md:h-20 object-contain" />
+                    </div>
+
+                    <h1 className="text-xl sm:text-2xl md:text-3xl mt-6 sm:mt-8 font-bold text-black-secondary text-center px-2 sm:px-6 md:px-8">
+                        Admin Log In
+                    </h1>
+                    <p className="text-sm sm:text-base text-neutral-600 text-center mb-4 sm:mb-6 md:mb-8 mt-2">
+                        Login to proceed
+                    </p>
+
+                    <form className="space-y-4 sm:space-y-6 w-full max-w-sm mx-auto" onSubmit={handleLogin}>
+                        <div>
+                            <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700">
+                                Email:
                             </label>
                             <input
-                                id="email"
                                 type="email"
-                                placeholder="Enter Your Email"
+                                id="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full text-sm px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition-all duration-300 ease-in-out hover:border-blue-200"
+                                placeholder="Enter your email"
+                                autocomplete="email"
                                 required
+                                className="w-full mt-2 text-xs sm:text-sm px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-300 focus:outline-none"
                             />
                         </div>
-                        <div className="mb-4 relative">
-                            <label className="block text-sm font-semibold mb-2" htmlFor="password">
-                                Password
+
+                        <div>
+                            <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-700">
+                                Password:
                             </label>
                             <div className="relative">
                                 <input
-                                    id="password"
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="Enter Password"
+                                    id="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full text-sm  px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition-all duration-300 ease-in-out hover:border-blue-200 pr-10"
+                                    placeholder="Enter your password"
                                     required
+                                    className="w-full mt-2 text-xs sm:text-sm px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-300 focus:outline-none pr-10"
                                 />
                                 <button
                                     type="button"
                                     onClick={togglePasswordVisibility}
                                     className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-700 hover:text-gray-900 focus:outline-none"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
+                                    style={{ top: 'calc(50% + 4px)' }}
                                 >
                                     {showPassword ? (
                                         <PiEyeSlashThin size={20} />
@@ -178,28 +193,28 @@ function AdminEmployerLogin({ onLogin }) {
                                 </button>
                             </div>
                         </div>
-                        <div className="mb-6 text-left">
-                            <Link 
-                                to="/employer/forgot-password" 
-                                className="text-sm text-blue-600 hover:text-blue-800 transition-colors duration-200"
-                            >
+
+                        <div className="flex justify-between items-center mt-1 sm:mt-2">
+                            <Link to="/employer/forgot-password" className="text-xs sm:text-sm text-blue-600 hover:underline">
                                 Forgot Password?
                             </Link>
                         </div>
-                        <button
-                            type="submit"
-                            className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 ease-in-out flex justify-center items-center hover:shadow-md focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={loading}
-                        >
-                            {loading ? <ClipLoader size={20} color="#ffffff" /> : "Login"}
-                        </button>
+
+                        <div className="mt-2 sm:mt-4">
+                            <button
+                                type="submit"
+                                className="w-full bg-blue-600 text-white px-4 py-2 text-xs sm:text-sm rounded-md hover:bg-blue-700 transition flex items-center justify-center gap-2"
+                                disabled={loading}
+                            >
+                                {loading && <ClipLoader size={16} color="white" />}
+                                {loading ? " " : "Login"}
+                            </button>
+                        </div>
                     </form>
-                    <p className="text-center mt-6 text-sm">
+
+                    <p className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
                         Need an account?{" "}
-                        <Link 
-                            to="/employer-signup" 
-                            className="text-blue-600 hover:text-blue-800 transition-colors duration-200 font-medium"
-                        >
+                        <Link to="/employer-signup" className="text-blue-600 hover:underline">
                             Sign up as an employer
                         </Link>
                     </p>

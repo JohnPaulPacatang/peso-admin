@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { collection, getDocs, deleteDoc, doc, updateDoc, query, where, addDoc } from 'firebase/firestore';
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
+import { Link } from "react-router-dom";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -100,7 +101,7 @@ const TableUsers = () => {
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
-  
+
     const deletePromise = new Promise(async (resolve, reject) => {
       try {
         // Store user data before deletion
@@ -109,25 +110,25 @@ const TableUsers = () => {
           email: userToDelete.email || 'N/A',
           name: userToDelete.name || 'N/A',
           deletedAt: new Date(),
-          accType: "user" 
+          accType: "user"
         };
-  
+
         await addDoc(collection(db, "deleted_logs"), userData);
- 
+
         await deleteDoc(doc(db, "profiles", userToDelete.id));
-        
-  
+
+
         setUsers(users.filter(user => user.id !== userToDelete.id));
         setIsDeleteConfirmOpen(false);
         setUserToDelete(null);
-        
+
         resolve("The user profile has been successfully deleted and logged!");
       } catch (error) {
         console.error("Error in delete process: ", error);
         reject("Failed to complete the delete operation. Please try again.");
       }
     });
-  
+
     toast.promise(deletePromise, {
       loading: "Deleting the profile, please wait...",
       success: "Deleted successfully!",
@@ -279,7 +280,7 @@ const TableUsers = () => {
       <div className="max-w-8xl mx-auto py-4">
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Manage Users</h1>
-          <div className="flex space-x-2">
+          <div className="flex space-x-4">
             <div className="relative">
               <input
                 type="text"
@@ -304,6 +305,12 @@ const TableUsers = () => {
             >
               Export PDF
             </button>
+            <Link
+              to="/admin/deleted-users"
+              className="bg-red-600 text-white hover:bg-red-700 py-2 px-4 rounded-full text-sm font-semibold transition duration-300"
+            >
+              View Deleted Logs
+            </Link>
           </div>
         </div>
       </div>
