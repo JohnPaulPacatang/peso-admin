@@ -14,6 +14,7 @@ import 'jspdf-autotable';
 const ManageEmployerAccounts = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [accounts, setAccounts] = useState([]);
+    const [filteredAccounts, setFilteredAccounts] = useState([]);
     const [selectedAccount, setSelectedAccount] = useState(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [accountToDelete, setAccountToDelete] = useState(null);
@@ -23,48 +24,31 @@ const ManageEmployerAccounts = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [accountsPerPage] = useState(10);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSearching, setIsSearching] = useState(false);
+    const searchInputRef = useRef(null);
+    const initialLoadComplete = useRef(false);
+    const allEmployersData = useRef([]);
 
+    // Initial data fetch
     useEffect(() => {
         const fetchEmployers = async () => {
-            setIsLoading(true);
             try {
-                let employersQuery;
-                const lowercaseSearchTerm = searchTerm.trim().toLowerCase();
+                setIsLoading(true);
+                const employersQuery = query(
+                    collection(db, "employers"),
+                    orderBy("createdAt", "desc")
+                );
 
-                if (lowercaseSearchTerm !== "") {
-                    employersQuery = query(
-                        collection(db, "employers"),
-                        orderBy("createdAt", "desc")
-                    );
+                const querySnapshot = await getDocs(employersQuery);
+                const employersData = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
 
-                    const querySnapshot = await getDocs(employersQuery);
-                    const allEmployersData = querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data(),
-                    }));
-
-                    // Filter client-side for case-insensitive search
-                    const filteredEmployers = allEmployersData.filter(employer =>
-                        employer.companyName &&
-                        employer.companyName.toLowerCase().includes(lowercaseSearchTerm)
-                    );
-
-                    setAccounts(filteredEmployers);
-                } else {
-                    // No search term, get all employers sorted by creation date
-                    employersQuery = query(
-                        collection(db, "employers"),
-                        orderBy("createdAt", "desc")
-                    );
-
-                    const querySnapshot = await getDocs(employersQuery);
-                    const employersData = querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data(),
-                    }));
-
-                    setAccounts(employersData);
-                }
+                allEmployersData.current = employersData;
+                setAccounts(employersData);
+                setFilteredAccounts(employersData);
+                initialLoadComplete.current = true;
             } catch (error) {
                 console.error('Error fetching employers:', error);
                 toast.error("Failed to fetch employers");
@@ -73,14 +57,41 @@ const ManageEmployerAccounts = () => {
             }
         };
 
-        const debounceTimer = setTimeout(() => {
-            fetchEmployers();
-        }, 500);
+        fetchEmployers();
+    }, []);
 
-        return () => clearTimeout(debounceTimer);
+    // Handle search filtering client-side
+    useEffect(() => {
+        if (!initialLoadComplete.current) return;
+
+        const filterAccounts = () => {
+            const lowercaseSearchTerm = searchTerm.trim().toLowerCase();
+
+            if (lowercaseSearchTerm === "") {
+                setFilteredAccounts(allEmployersData.current);
+                setIsSearching(false);
+                return;
+            }
+
+            setIsSearching(true);
+
+            // Small delay to show loading state during typing
+            const searchTimeout = setTimeout(() => {
+                const filtered = allEmployersData.current.filter(employer =>
+                    employer.companyName &&
+                    employer.companyName.toLowerCase().includes(lowercaseSearchTerm)
+                );
+
+                setFilteredAccounts(filtered);
+                setIsSearching(false);
+                setCurrentPage(1);
+            }, 300);
+
+            return () => clearTimeout(searchTimeout);
+        };
+
+        filterAccounts();
     }, [searchTerm]);
-
-    const filteredAccounts = accounts;
 
     // Pagination logic
     const indexOfLastAccount = currentPage * accountsPerPage;
@@ -129,7 +140,11 @@ const ManageEmployerAccounts = () => {
                 // Then delete the employer from employers collection
                 await deleteDoc(doc(db, "employers", accountToDelete.id));
 
-                setAccounts(accounts.filter(acc => acc.id !== accountToDelete.id));
+                // Update both arrays
+                const updatedData = allEmployersData.current.filter(acc => acc.id !== accountToDelete.id);
+                allEmployersData.current = updatedData;
+                setFilteredAccounts(current => current.filter(acc => acc.id !== accountToDelete.id));
+
                 setIsDeleteConfirmOpen(false);
                 setAccountToDelete(null);
 
@@ -146,6 +161,7 @@ const ManageEmployerAccounts = () => {
             error: "Error during deletion process.",
         });
     };
+
     const cancelDelete = () => {
         setIsDeleteConfirmOpen(false);
         setAccountToDelete(null);
@@ -171,10 +187,16 @@ const ManageEmployerAccounts = () => {
                     company_address: editingAccount.company_address,
                 });
 
-                // Update local state
-                setAccounts(accounts.map(acc =>
-                    acc.id === editingAccount.id ? { ...acc, ...editingAccount } : acc
-                ));
+                // Update both data arrays
+                const updatedAccount = { ...editingAccount };
+
+                allEmployersData.current = allEmployersData.current.map(acc =>
+                    acc.id === editingAccount.id ? updatedAccount : acc
+                );
+
+                setFilteredAccounts(current =>
+                    current.map(acc => acc.id === editingAccount.id ? updatedAccount : acc)
+                );
 
                 setIsEditModalOpen(false);
                 resolve("Updated successfully!");
@@ -216,7 +238,7 @@ const ManageEmployerAccounts = () => {
         doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
 
         const headers = [['Company Name', 'Email', 'Contact Person', 'Contact Email', 'Address', 'Created Date', 'Verified']];
-        const tableData = accounts.map(acc => [
+        const tableData = filteredAccounts.map(acc => [
             acc.companyName || 'N/A',
             acc.email || 'N/A',
             acc.contact_person_name || 'N/A',
@@ -266,15 +288,17 @@ const ManageEmployerAccounts = () => {
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1);
     };
 
     const clearSearch = () => {
         setSearchTerm('');
+        // Focus on the search input after clearing
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
     };
 
-
-    if (isLoading) {
+    if (isLoading && !initialLoadComplete.current) {
         return (
             <div className="flex flex-col items-center justify-center h-screen">
                 <BeatLoader color="#36d7b7" size={15} />
@@ -296,6 +320,8 @@ const ManageEmployerAccounts = () => {
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                                 className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80"
+                                ref={searchInputRef}
+                                autoFocus
                             />
                             <CiSearch className="absolute left-3 top-2.5 text-gray-400 text-lg" />
                             {searchTerm && (
@@ -330,17 +356,37 @@ const ManageEmployerAccounts = () => {
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Contact Person</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Contact Email</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Address</th>
-                                {/* <th className="px-3 py-3 text-left text-sm font-semibold text-black">Created Date</th> */}
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Permit</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Verified</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredAccounts.length === 0 ? (
+                            {isSearching ? (
                                 <tr>
-                                    <td colSpan="9" className="px-4 py-4 text-center text-sm text-gray-500">
-                                        No company found
+                                    <td colSpan="8" className="px-4 py-4 text-center">
+                                        <div className="flex justify-center items-center py-8">
+                                            <BeatLoader color="#36d7b7" size={10} />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : filteredAccounts.length === 0 ? (
+                                <tr>
+                                    <td colSpan="8" className="px-4 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <p className="text-gray-500 text-lg font-medium">No companies found matching your search criteria.</p>
+                                            {searchTerm && (
+                                                <button
+                                                    onClick={clearSearch}
+                                                    className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                                                >
+                                                    Clear Search
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
@@ -373,7 +419,6 @@ const ManageEmployerAccounts = () => {
                                             )}
                                         </td>
                                         <td className="px-3 py-3 text-sm text-gray-700">{truncateText(account.company_address) || '-'}</td>
-                                        {/* <td className="px-3 py-3 text-sm text-gray-700">{formatCreatedDate(account.createdAt)}</td> */}
                                         <td className="px-3 py-3 text-sm text-gray-700">
                                             {account.business_permit ? (
                                                 <a
@@ -442,7 +487,6 @@ const ManageEmployerAccounts = () => {
                                     </span>{" "}
                                     of <span className="font-medium">{filteredAccounts.length}</span> results
                                 </p>
-
                             </div>
                             <div>
                                 <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
@@ -585,47 +629,33 @@ const ManageEmployerAccounts = () => {
                                         name="company_address"
                                         value={editingAccount.company_address || ''}
                                         onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Business Permit URL
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="business_permit"
-                                        value={editingAccount.business_permit || ''}
-                                        readOnly
-                                        className="w-full px-3 py-2 border bg-gray-50 text-gray-600 cursor-default border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        className="w-full px-3 py-2 border bg-gray-50 text-gray-600 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     />
                                     {editingAccount.business_permit && (
-                                        <div className="mt-2">
-                                            <a
-                                                href={editingAccount.business_permit}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:text-blue-800 text-sm"
-                                            >
-                                                View Current Permit
-                                            </a>
-                                        </div>
+                                        <a
+                                            href={editingAccount.business_permit}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-600 hover:text-blue-800 mt-1 inline-block"
+                                        >
+                                            View permit document
+                                        </a>
                                     )}
                                 </div>
                             </div>
                             <div className="flex gap-4 justify-center mt-8">
+                                <button
+                                    type="submit"
+                                    className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 focus:outline-none transition-colors duration-150 text-sm"
+                                >
+                                    Save Changes
+                                </button>
                                 <button
                                     type="button"
                                     className="flex-1 bg-gray-200 text-gray-800 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 focus:outline-none transition-colors duration-150 text-sm"
                                     onClick={() => setIsEditModalOpen(false)}
                                 >
                                     Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 focus:outline-none transition-colors duration-150 text-sm"
-                                >
-                                    Save Changes
                                 </button>
                             </div>
                         </form>

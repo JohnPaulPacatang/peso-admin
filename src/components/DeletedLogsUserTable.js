@@ -13,6 +13,7 @@ const DeletedLogsUsersTable = () => {
     const [allDeletedUsers, setAllDeletedUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSearching, setIsSearching] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [logsPerPage] = useState(10);
@@ -50,24 +51,33 @@ const DeletedLogsUsersTable = () => {
         fetchAllDeletedLogs();
     }, []);
 
-    // Handle search with client-side filtering
+    // Handle search with client-side filtering by name only
     useEffect(() => {
-        if (searchTerm.trim() === '') {
-            setFilteredUsers(allDeletedUsers);
-        } else {
-            const lowercaseSearch = searchTerm.toLowerCase();
-            const filtered = allDeletedUsers.filter(user => {
-                // Case insensitive search on name, email, and userId
-                return (
-                    (user.name && user.name.toLowerCase().includes(lowercaseSearch)) ||
-                    (user.email && user.email.toLowerCase().includes(lowercaseSearch)) ||
-                    (user.userId && user.userId.toLowerCase().includes(lowercaseSearch))
-                );
-            });
-            setFilteredUsers(filtered);
-        }
-        // Reset to first page whenever search changes
-        setCurrentPage(1);
+        const performSearch = async () => {
+            setIsSearching(true);
+
+            try {
+                // Simulate a small delay to show the loading state
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                if (searchTerm.trim() === '') {
+                    setFilteredUsers(allDeletedUsers);
+                } else {
+                    const lowercaseSearch = searchTerm.toLowerCase();
+                    const filtered = allDeletedUsers.filter(user => {
+                        // Case insensitive search on name only
+                        return user.name && user.name.toLowerCase().includes(lowercaseSearch);
+                    });
+                    setFilteredUsers(filtered);
+                }
+                // Reset to first page whenever search changes
+                setCurrentPage(1);
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        performSearch();
     }, [searchTerm, allDeletedUsers]);
 
     // Pagination logic
@@ -80,6 +90,10 @@ const DeletedLogsUsersTable = () => {
         if (pageNumber > 0 && pageNumber <= totalPages) {
             setCurrentPage(pageNumber);
         }
+    };
+
+    const clearSearch = () => {
+        setSearchTerm('');
     };
 
     const formatTimestamp = (timestamp) => {
@@ -155,7 +169,7 @@ const DeletedLogsUsersTable = () => {
                         <div className="relative">
                             <input
                                 type="text"
-                                placeholder="Search by Name, Email, ID..."
+                                placeholder="Search by Name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80"
@@ -192,10 +206,31 @@ const DeletedLogsUsersTable = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentLogs.length === 0 ? (
+                            {isSearching ? (
                                 <tr>
-                                    <td colSpan="4" className="px-4 py-4 text-center text-sm text-gray-500">
-                                        No deleted user logs found
+                                    <td colSpan="4" className="px-4 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <BeatLoader color="#36d7b7" size={10} />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : currentLogs.length === 0 ? (
+                                <tr>
+                                    <td colSpan="4" className="px-4 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <p className="text-gray-500 text-lg font-medium">No deleted users found matching your search criteria.</p>
+                                            {searchTerm && (
+                                                <button
+                                                    onClick={clearSearch}
+                                                    className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                                                >
+                                                    Clear Search
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (

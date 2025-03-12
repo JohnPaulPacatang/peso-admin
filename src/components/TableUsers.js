@@ -14,6 +14,7 @@ import 'jspdf-autotable';
 const TableUsers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -23,73 +24,82 @@ const TableUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchInputRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
+  // Fetch all users initially
   useEffect(() => {
-    const fetchUsers = async () => {
-      setIsLoading(true);
+    const fetchAllUsers = async () => {
       try {
-        let querySnapshot;
-        const lowercaseSearchTerm = searchTerm.trim().toLowerCase();
+        const profilesRef = collection(db, "profiles");
+        const querySnapshot = await getDocs(profilesRef);
 
-        if (lowercaseSearchTerm !== "") {
-          // Fetch all profiles and filter client-side for case-insensitive search
-          const profilesRef = collection(db, "profiles");
-          querySnapshot = await getDocs(profilesRef);
+        const usersData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-          const allUsersData = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
+        // Sort by creation time
+        usersData.sort((a, b) => {
+          const aTime = a.createdAt ? a.createdAt.seconds : 0;
+          const bTime = b.createdAt ? b.createdAt.seconds : 0;
+          return bTime - aTime;
+        });
 
-          // Filter client-side for case-insensitive search
-          const filteredUsers = allUsersData.filter(user =>
-            user.name &&
-            user.name.toLowerCase().includes(lowercaseSearchTerm)
-          );
-
-          // Sort the filtered results
-          filteredUsers.sort((a, b) => {
-            const aTime = a.createdAt ? a.createdAt.seconds : 0;
-            const bTime = b.createdAt ? b.createdAt.seconds : 0;
-            return bTime - aTime;
-          });
-
-          setUsers(filteredUsers);
-        } else {
-          // If no search term, fetch all users
-          const profilesRef = collection(db, "profiles");
-          querySnapshot = await getDocs(profilesRef);
-
-          const usersData = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-
-          // Sort by creation time
-          usersData.sort((a, b) => {
-            const aTime = a.createdAt ? a.createdAt.seconds : 0;
-            const bTime = b.createdAt ? b.createdAt.seconds : 0;
-            return bTime - aTime;
-          });
-
-          setUsers(usersData);
-        }
+        setUsers(usersData);
+        setFilteredUsers(usersData);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error fetching users:', error);
         toast.error("Failed to fetch users");
-      } finally {
         setIsLoading(false);
       }
     };
 
-    const debounceTimer = setTimeout(() => {
-      fetchUsers();
-    }, 500);
+    fetchAllUsers();
+  }, []);
 
-    return () => clearTimeout(debounceTimer);
-  }, [searchTerm]);
+  // Handle search with debouncing and smooth transitions
+  useEffect(() => {
+    // Show loader immediately when typing starts
+    if (searchTerm.trim() !== '') {
+      setIsSearching(true);
+    }
 
-  const filteredUsers = users;
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for debouncing
+    searchTimeoutRef.current = setTimeout(() => {
+      if (searchTerm.trim() === '') {
+        // If search is cleared, show all users
+        setFilteredUsers(users);
+        setIsSearching(false);
+      } else {
+        // Filter users client-side
+        const lowercaseSearchTerm = searchTerm.trim().toLowerCase();
+        const filtered = users.filter(user =>
+          user.name && user.name.toLowerCase().includes(lowercaseSearchTerm)
+        );
+        
+        // Update filtered results
+        setFilteredUsers(filtered);
+        setIsSearching(false);
+      }
+      
+      // Reset to first page when search results change
+      setCurrentPage(1);
+    }, 500); // 500ms debounce delay
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm, users]);
 
   // Pagination logic
   const indexOfLastUser = currentPage * usersPerPage;
@@ -135,11 +145,15 @@ const TableUsers = () => {
         };
 
         await addDoc(collection(db, "deleted_logs"), userData);
-
         await deleteDoc(doc(db, "profiles", userToDelete.id));
 
-
-        setUsers(users.filter(user => user.id !== userToDelete.id));
+        // Update both users and filteredUsers states
+        const updatedUsers = users.filter(user => user.id !== userToDelete.id);
+        setUsers(updatedUsers);
+        setFilteredUsers(
+          filteredUsers.filter(user => user.id !== userToDelete.id)
+        );
+        
         setIsDeleteConfirmOpen(false);
         setUserToDelete(null);
 
@@ -183,10 +197,17 @@ const TableUsers = () => {
           address: editingUser.address,
         });
 
-        // Update local state
-        setUsers(users.map(user =>
+        // Update both users and filteredUsers states
+        const updatedUsers = users.map(user =>
           user.id === editingUser.id ? { ...user, ...editingUser } : user
-        ));
+        );
+        
+        setUsers(updatedUsers);
+        setFilteredUsers(
+          filteredUsers.map(user =>
+            user.id === editingUser.id ? { ...user, ...editingUser } : user
+          )
+        );
 
         setIsEditModalOpen(false);
         resolve("Updated successfully!");
@@ -222,7 +243,7 @@ const TableUsers = () => {
     doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
 
     const headers = [['Name', 'Email', 'Contact Number', 'Address', 'Verified', 'Created At']];
-    const tableData = users.map(user => [
+    const tableData = filteredUsers.map(user => [
       user.name || 'N/A',
       user.email || 'N/A',
       user.contactNumber || 'N/A',
@@ -269,13 +290,23 @@ const TableUsers = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // Focus the search input after it's rendered
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
+
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1);
   };
 
   const clearSearch = () => {
     setSearchTerm('');
+    setIsSearching(false);
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
   };
 
   const formatTimestamp = (timestamp) => {
@@ -304,6 +335,7 @@ const TableUsers = () => {
           <div className="flex space-x-4">
             <div className="relative">
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search by Name..."
                 value={searchTerm}
@@ -348,10 +380,31 @@ const TableUsers = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.length === 0 ? (
+              {isSearching ? (
                 <tr>
-                  <td colSpan="7" className="px-4 py-4 text-center text-sm text-gray-500">
-                    No users found
+                  <td colSpan="7" className="px-4 py-4 text-center">
+                    <div className="flex justify-center items-center py-8">
+                      <BeatLoader color="#36d7b7" size={10} />
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <p className="text-gray-500 text-lg font-medium">No users found matching your search criteria.</p>
+                      {searchTerm && (
+                        <button
+                          onClick={clearSearch}
+                          className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                        >
+                          Clear Search
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -417,62 +470,62 @@ const TableUsers = () => {
               )}
             </tbody>
           </table>
-
-          <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
-            <div className="flex-1 flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{filteredUsers.length > 0 ? indexOfFirstUser + 1 : 0}</span> to{" "}
-                  <span className="font-medium">
-                    {Math.min(indexOfLastUser, filteredUsers.length)}
-                  </span>{" "}
-                  of <span className="font-medium">{filteredUsers.length}</span> results
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => paginate(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium ${currentPage === 1
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-gray-500 hover:bg-gray-50'
-                      }`}
-                  >
-                    <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-
-                  {[...Array(totalPages)].map((_, i) => (
+       
+            <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
+              <div className="flex-1 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Showing <span className="font-medium">{filteredUsers.length > 0 ? indexOfFirstUser + 1 : 0}</span> to{" "}
+                    <span className="font-medium">
+                      {Math.min(indexOfLastUser, filteredUsers.length)}
+                    </span>{" "}
+                    of <span className="font-medium">{filteredUsers.length}</span> results
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                     <button
-                      key={i}
-                      onClick={() => paginate(i + 1)}
-                      className={`relative inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-large ${currentPage === i + 1
-                        ? 'z-10 bg-blue-50 border-blue text-blue'
-                        : 'bg-white text-gray-500 hover:bg-gray-50'
+                      onClick={() => paginate(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium ${currentPage === 1
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-500 hover:bg-gray-50'
                         }`}
                     >
-                      {i + 1}
+                      <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
                     </button>
-                  ))}
 
-                  <button
-                    onClick={() => paginate(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium ${currentPage === totalPages
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-gray-500 hover:bg-gray-50'
-                      }`}
-                  >
-                    <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </nav>
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => paginate(i + 1)}
+                        className={`relative inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-large ${currentPage === i + 1
+                          ? 'z-10 bg-blue-50 border-blue text-blue'
+                          : 'bg-white text-gray-500 hover:bg-gray-50'
+                          }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() => paginate(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium ${currentPage === totalPages
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-500 hover:bg-gray-50'
+                        }`}
+                    >
+                      <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
+                </div>
               </div>
             </div>
-          </div>
         </div>
       </div>
 
@@ -571,18 +624,6 @@ const TableUsers = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
                 </div>
-                {/* <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Profile Image
-                  </label>
-                  <input
-                    type="text"
-                    name="profileImage"
-                    value={editingUser.profileImage || ''}
-                    readOnly
-                    className="w-full px-3 py-2 border bg-gray-50 text-gray-600 cursor-default border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
-                </div> */}
               </div>
               <div className="flex gap-4 justify-center mt-8">
                 <button

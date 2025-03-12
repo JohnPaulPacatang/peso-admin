@@ -127,6 +127,14 @@ const EmployerProfileCard = () => {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Add file type validation
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']; 
+        if (!allowedTypes.includes(file.type)) { 
+            toast.error("Please upload an image file (JPEG, PNG, GIF)"); 
+            e.target.value = null; // Reset the file input
+            return; 
+        }
+
         const currentFileUrl = employer[field];
         let currentFileName = "";
 
@@ -420,7 +428,7 @@ const EmployerProfileCard = () => {
                             <span>{employer.businessPermit || previewUrls.businessPermit ? "Change File" : "Upload Permit"}</span>
                             <input
                                 type="file"
-                                accept="image/*,application/pdf"
+                                accept="image/*"
                                 onChange={(e) => handleFileChange(e, "businessPermit", "permits")}
                                 className="hidden"
                                 disabled={isUploading.businessPermit}

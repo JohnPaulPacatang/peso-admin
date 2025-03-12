@@ -13,6 +13,7 @@ import EditAnnouncementModal from "./EditAnnouncementModal";
 const TableAnnouncements = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [announcements, setAnnouncements] = useState([]);
+    const [filteredAnnouncements, setFilteredAnnouncements] = useState([]);
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -23,33 +24,20 @@ const TableAnnouncements = () => {
     const [announcementsPerPage] = useState(10);
     const modalRef = useRef(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSearching, setIsSearching] = useState(false);
+    const searchInputRef = useRef(null);
 
+    // Fetch announcements only once
     useEffect(() => {
         const fetchAnnouncements = async () => {
             setIsLoading(true);
             try {
-                // Declare the base query
-                let announcementsQuery;
-                const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-
-                if (normalizedSearchTerm !== "") {
-                    // Fetch all announcements since we need to filter manually for case-insensitive search
-                    announcementsQuery = collection(db, "announcements");
-                } else {
-                    announcementsQuery = collection(db, "announcements");
-                }
-
+                const announcementsQuery = collection(db, "announcements");
                 const querySnapshot = await getDocs(announcementsQuery);
                 let announcementsData = querySnapshot.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
-
-                if (normalizedSearchTerm !== "") {
-                    announcementsData = announcementsData.filter((announcement) =>
-                        announcement.title.toLowerCase().includes(normalizedSearchTerm)
-                    );
-                }
 
                 // Sort by date (newest first)
                 announcementsData.sort((a, b) => {
@@ -58,6 +46,7 @@ const TableAnnouncements = () => {
                 });
 
                 setAnnouncements(announcementsData);
+                setFilteredAnnouncements(announcementsData);
             } catch (error) {
                 console.error("Error fetching announcements:", error);
                 toast.error("Failed to fetch announcements");
@@ -66,18 +55,42 @@ const TableAnnouncements = () => {
             }
         };
 
+        fetchAnnouncements();
+    }, []);
+
+    // Handle search filtering with debouncing
+    useEffect(() => {
+        const filterAnnouncements = () => {
+            setIsSearching(true);
+
+            const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
+            if (normalizedSearchTerm === "") {
+                setFilteredAnnouncements(announcements);
+            } else {
+                const filtered = announcements.filter((announcement) =>
+                    announcement.title.toLowerCase().includes(normalizedSearchTerm)
+                );
+                setFilteredAnnouncements(filtered);
+            }
+
+            // Reset to first page when search changes
+            setCurrentPage(1);
+            setIsSearching(false);
+        };
+
         const debounceTimer = setTimeout(() => {
-            fetchAnnouncements();
-        }, 500);
+            filterAnnouncements();
+        }, 300);
 
         return () => clearTimeout(debounceTimer);
-    }, [searchTerm]);
+    }, [searchTerm, announcements]);
 
     // Pagination logic
     const indexOfLastAnnouncement = currentPage * announcementsPerPage;
     const indexOfFirstAnnouncement = indexOfLastAnnouncement - announcementsPerPage;
-    const currentAnnouncements = announcements.slice(indexOfFirstAnnouncement, indexOfLastAnnouncement);
-    const totalPages = Math.ceil(announcements.length / announcementsPerPage);
+    const currentAnnouncements = filteredAnnouncements.slice(indexOfFirstAnnouncement, indexOfLastAnnouncement);
+    const totalPages = Math.ceil(filteredAnnouncements.length / announcementsPerPage);
 
     const paginate = (pageNumber) => {
         if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -226,12 +239,17 @@ const TableAnnouncements = () => {
     }, [isDeleteConfirmOpen]);
 
     const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-        setCurrentPage(1);
+        const value = e.target.value;
+        setIsSearching(true);
+        setSearchTerm(value);
     };
 
     const clearSearch = () => {
         setSearchTerm('');
+        // Focus back on the input
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
     };
 
     if (isLoading) {
@@ -253,11 +271,13 @@ const TableAnnouncements = () => {
                         {/* Search input with icon */}
                         <div className="relative">
                             <input
+                                ref={searchInputRef}
                                 type="text"
                                 placeholder="Search by Title..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80"
+                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                autoFocus
                             />
                             <CiSearch className="absolute left-3 top-2.5 text-gray-400 text-lg" />
                             {searchTerm && (
@@ -290,10 +310,31 @@ const TableAnnouncements = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentAnnouncements.length === 0 ? (
+                            {isSearching ? (
                                 <tr>
-                                    <td colSpan="8" className="px-4 py-4 text-center text-sm text-gray-500">
-                                        No announcement found
+                                    <td colSpan="8" className="px-4 py-4 text-center">
+                                        <div className="flex justify-center items-center py-8">
+                                            <BeatLoader color="#36d7b7" size={10} />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : currentAnnouncements.length === 0 ? (
+                                <tr>
+                                    <td colSpan="8" className="px-4 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <p className="text-gray-500 text-lg font-medium">No announcements found matching your search criteria.</p>
+                                            {searchTerm && (
+                                                <button
+                                                    onClick={clearSearch}
+                                                    className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                                                >
+                                                    Clear Search
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
@@ -336,17 +377,18 @@ const TableAnnouncements = () => {
                             )}
                         </tbody>
                     </table>
+
+
                     <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
                         <div className="flex-1 flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{announcements.length > 0 ? indexOfFirstAnnouncement + 1 : 0}</span> to{" "}
+                                    Showing <span className="font-medium">{filteredAnnouncements.length > 0 ? indexOfFirstAnnouncement + 1 : 0}</span> to{" "}
                                     <span className="font-medium">
-                                        {Math.min(indexOfLastAnnouncement, announcements.length)}
+                                        {Math.min(indexOfLastAnnouncement, filteredAnnouncements.length)}
                                     </span>{" "}
-                                    of <span className="font-medium">{announcements.length}</span> results
+                                    of <span className="font-medium">{filteredAnnouncements.length}</span> results
                                 </p>
-
                             </div>
                             <div>
                                 <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
@@ -391,7 +433,7 @@ const TableAnnouncements = () => {
                                 </nav>
                             </div>
                         </div>
-                    </div>
+                    </div>  
                 </div>
             </div>
 

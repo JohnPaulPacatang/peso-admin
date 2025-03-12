@@ -16,6 +16,7 @@ const JobApplicants = () => {
     const [applications, setApplications] = useState([]);
     const [filteredApplications, setFilteredApplications] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchLoading, setSearchLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const navigate = useNavigate();
     const { jobId } = useParams();
@@ -69,21 +70,34 @@ const JobApplicants = () => {
         }
     }, [jobId]);
 
-    // Real-time filtering as user types
+    // Real-time filtering as user types with debounce effect
     useEffect(() => {
-        if (searchTerm.trim() === '') {
-            setFilteredApplications(applications);
-            setCurrentPage(1);
-            return;
+        // Show search loading state
+        if (searchTerm.trim() !== '') {
+            setSearchLoading(true);
         }
 
-        const lowercaseSearchTerm = searchTerm.toLowerCase();
-        const filtered = applications.filter(app => 
-            app.applicantName.toLowerCase().includes(lowercaseSearchTerm)
-        );
-        
-        setFilteredApplications(filtered);
-        setCurrentPage(1); // Reset to first page when search results change
+        // Set a timeout to simulate search processing and prevent excessive rerenders
+        const searchTimeout = setTimeout(() => {
+            if (searchTerm.trim() === '') {
+                setFilteredApplications(applications);
+                setCurrentPage(1);
+                setSearchLoading(false);
+                return;
+            }
+
+            const lowercaseSearchTerm = searchTerm.toLowerCase();
+            const filtered = applications.filter(app =>
+                app.applicantName.toLowerCase().includes(lowercaseSearchTerm)
+            );
+
+            setFilteredApplications(filtered);
+            setCurrentPage(1); // Reset to first page when search results change
+            setSearchLoading(false);
+        }, 500); // 500ms debounce delay
+
+        // Cleanup timeout on component unmount or when searchTerm changes
+        return () => clearTimeout(searchTimeout);
     }, [searchTerm, applications]);
 
     // Clear search and show all applications
@@ -165,10 +179,10 @@ const JobApplicants = () => {
 
     const confirmDelete = () => {
         if (!applicationToDelete) return;
-        
+
         // Close the modal first for better UX
         setIsDeleteConfirmOpen(false);
-        
+
         // Use toast.promise to track the async operation
         toast.promise(
             deleteApplication(),
@@ -179,22 +193,22 @@ const JobApplicants = () => {
             }
         );
     };
-    
+
     const deleteApplication = async () => {
         try {
             await deleteDoc(doc(db, 'applications', applicationToDelete.id));
-         
+
             const updatedApplications = applications.filter(app => app.id !== applicationToDelete.id);
             setApplications(updatedApplications);
             setFilteredApplications(updatedApplications);
-           
+
             setApplicationToDelete(null);
-            
-            return true; 
+
+            return true;
         } catch (error) {
             console.error('Error deleting application:', error);
             setApplicationToDelete(null);
-            throw error; 
+            throw error;
         }
     };
 
@@ -222,6 +236,7 @@ const JobApplicants = () => {
                                 className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm"
                             />
                             <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+
                             {searchTerm && (
                                 <button
                                     onClick={clearSearch}
@@ -239,7 +254,7 @@ const JobApplicants = () => {
                         <button
                             onClick={() => navigate(-1)}
                             className="bg-blue-500 text-white hover:bg-blue-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
-                            <IoChevronBackOutline/> Back to Jobs
+                            <IoChevronBackOutline /> Back to Jobs
                         </button>
                     </div>
                 </div>
@@ -259,7 +274,15 @@ const JobApplicants = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {currentApplications.length > 0 ? (
+                                {searchLoading ? (
+                                    <tr>
+                                        <td colSpan="7" className="px-4 py-12 text-center">
+                                            <div className="flex flex-col items-center justify-center">
+                                                <BeatLoader color="#36d7b7" size={12} />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : currentApplications.length > 0 ? (
                                     currentApplications.map((application) => (
                                         <tr key={application.id} className="border-b border-gray-200 hover:bg-gray-50">
                                             <td className="px-4 py-3 text-sm text-gray-700">{application.applicantName}</td>
@@ -297,15 +320,28 @@ const JobApplicants = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="7" className="px-4 py-4 text-center text-sm text-gray-500">
-                                            No applications found
+                                        <td colSpan="7" className="px-4 py-12 text-center">
+                                            <div className="flex flex-col items-center justify-center">
+                                                <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <p className="text-gray-500 text-lg font-medium">No applicants found matching your search criteria.</p>
+                                                {searchTerm && (
+                                                    <button
+                                                        onClick={clearSearch}
+                                                        className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                                                    >
+                                                        Clear Search
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 )}
                             </tbody>
                         </table>
                     </div>
-                    
+
                     {/* Pagination section */}
                     <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
                         <div className="flex-1 flex items-center justify-between">

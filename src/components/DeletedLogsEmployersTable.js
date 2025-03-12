@@ -13,6 +13,7 @@ const DeletedLogsEmployersTable = () => {
     const [deletedEmployers, setDeletedEmployers] = useState([]);
     const [filteredEmployers, setFilteredEmployers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSearching, setIsSearching] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [logsPerPage] = useState(10);
@@ -54,23 +55,29 @@ const DeletedLogsEmployersTable = () => {
 
     // Apply client-side filtering whenever searchTerm changes
     useEffect(() => {
-        if (searchTerm.trim() === '') {
-            setFilteredEmployers(deletedEmployers);
-        } else {
-            const lowercaseSearch = searchTerm.toLowerCase();
-            const filtered = deletedEmployers.filter(employer => {
-                // Case-insensitive search on company name
-                const companyName = (employer.companyName || '').toLowerCase();
-                const email = (employer.email || '').toLowerCase();
-                const employerId = (employer.employerId || '').toLowerCase();
-                
-                return companyName.includes(lowercaseSearch) || 
-                       email.includes(lowercaseSearch) || 
-                       employerId.includes(lowercaseSearch);
-            });
-            setFilteredEmployers(filtered);
-            setCurrentPage(1); // Reset to first page when search changes
-        }
+        const filterResults = () => {
+            setIsSearching(true);
+
+            if (searchTerm.trim() === '') {
+                setFilteredEmployers(deletedEmployers);
+            } else {
+                const lowercaseSearch = searchTerm.toLowerCase();
+                const filtered = deletedEmployers.filter(employer => {
+                    // Case-insensitive search on company name ONLY
+                    const companyName = (employer.companyName || '').toLowerCase();
+                    return companyName.includes(lowercaseSearch);
+                });
+                setFilteredEmployers(filtered);
+                setCurrentPage(1); // Reset to first page when search changes
+            }
+
+            // Add a small delay to simulate search process
+            setTimeout(() => {
+                setIsSearching(false);
+            }, 500);
+        };
+
+        filterResults();
     }, [searchTerm, deletedEmployers]);
 
     // Pagination logic
@@ -158,7 +165,7 @@ const DeletedLogsEmployersTable = () => {
                         <div className="relative">
                             <input
                                 type="text"
-                                placeholder="Search by company, email, ID..."
+                                placeholder="Search by company name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80"
@@ -195,10 +202,31 @@ const DeletedLogsEmployersTable = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentLogs.length === 0 ? (
+                            {isSearching ? (
                                 <tr>
-                                    <td colSpan="4" className="px-4 py-4 text-center text-sm text-gray-500">
-                                        No deleted employer logs found
+                                    <td colSpan="4" className="px-4 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <BeatLoader color="#36d7b7" size={10} />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : currentLogs.length === 0 ? (
+                                <tr>
+                                    <td colSpan="4" className="px-4 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <p className="text-gray-500 text-lg font-medium">No deleted employer logs found matching your search criteria.</p>
+                                            {searchTerm && (
+                                                <button
+                                                    onClick={() => setSearchTerm('')}
+                                                    className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                                                >
+                                                    Clear Search
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (

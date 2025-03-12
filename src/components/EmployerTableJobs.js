@@ -14,22 +14,25 @@ const EmployerTableJobs = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
+    const [filteredJobs, setFilteredJobs] = useState([]);
     const [selectedJob, setSelectedJob] = useState(null);
     const [sortOption, setSortOption] = useState('active');
     const dropdownRef = useRef(null);
+    const searchInputRef = useRef(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [applicantCounts, setApplicantCounts] = useState({});
     const [isLoading, setIsLoading] = useState(true);
+    const [isSearching, setIsSearching] = useState(false);
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const [jobsPerPage] = useState(10);
 
-    // Calculate pagination values
+    // Calculate pagination values based on filtered jobs
     const indexOfLastJob = currentPage * jobsPerPage;
     const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-    const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
-    const totalPages = Math.ceil(jobs.length / jobsPerPage);
+    const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
+    const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
 
     // Function to change page
     const paginate = (pageNumber) => {
@@ -38,6 +41,7 @@ const EmployerTableJobs = () => {
         }
     };
 
+    // Fetch applicant counts whenever jobs change
     useEffect(() => {
         const fetchApplicantCounts = async () => {
             if (jobs.length === 0) return;
@@ -61,13 +65,12 @@ const EmployerTableJobs = () => {
         };
 
         fetchApplicantCounts();
-    }, [jobs])
+    }, [jobs]);
 
-
+    // Initial data loading
     useEffect(() => {
-        const fetchJobs = async (sortValue = 'all') => {
+        const fetchInitialData = async () => {
             setIsLoading(true);
-
             try {
                 const employerData = JSON.parse(localStorage.getItem("employer"));
                 if (!employerData || !employerData.uid || !employerData.companyName) {
@@ -76,26 +79,11 @@ const EmployerTableJobs = () => {
                 }
 
                 const { uid: employerUid, companyName } = employerData;
-                let jobsQuery;
-                const lowercaseSearchTerm = searchTerm.trim().toLowerCase();
 
-                // First check for search term
-                if (lowercaseSearchTerm !== "") {
-                    // Use a general query and filter for case-insensitive search later
-                    jobsQuery = collection(db, 'jobs');
-                } else {
-                    // If no search term, apply the sort filter
-                    if (sortValue === 'open') {
-                        jobsQuery = query(collection(db, 'jobs'), where('isOpen', '==', true));
-                    } else if (sortValue === 'closed') {
-                        jobsQuery = query(collection(db, 'jobs'), where('isOpen', '==', false));
-                    } else {
-                        // 'all' option - fetch all jobs
-                        jobsQuery = collection(db, 'jobs');
-                    }
-                }
-
+                // Get all jobs for the employer
+                const jobsQuery = collection(db, 'jobs');
                 const querySnapshot = await getDocs(jobsQuery);
+
                 let fetchedJobs = querySnapshot.docs
                     .map((doc) => {
                         const data = doc.data();
@@ -120,34 +108,60 @@ const EmployerTableJobs = () => {
                     })
                     .filter((job) => job.employerUid === employerUid || job.company === companyName);
 
-                // Apply case-insensitive search filter if search term exists
-                if (lowercaseSearchTerm !== "") {
-                    fetchedJobs = fetchedJobs.filter(job =>
-                        job.title && job.title.toLowerCase().includes(lowercaseSearchTerm)
-                    );
-                }
-
                 // Sort by post date
                 fetchedJobs.sort((a, b) =>
                     (b.jobPosted ? b.jobPosted.getTime() : 0) - (a.jobPosted ? a.jobPosted.getTime() : 0)
                 );
 
                 setJobs(fetchedJobs);
+                applyFilters(fetchedJobs, sortOption, "");
             } catch (error) {
-                console.error('Error fetching jobs:', error);
+                console.error('Error fetching initial jobs data:', error);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        // Add debounce for search
+        fetchInitialData();
+    }, []);
+
+    // Function to apply filters (search + sort) without fetching from database again
+    const applyFilters = (jobsData, sortValue, search) => {
+        // Start with the current jobs data
+        let result = [...jobsData];
+
+        // Apply search filter if search term exists
+        if (search.trim() !== "") {
+            const lowercaseSearchTerm = search.trim().toLowerCase();
+            result = result.filter(job =>
+                job.title && job.title.toLowerCase().includes(lowercaseSearchTerm)
+            );
+        }
+
+        // Apply sort filter
+        if (sortValue === 'open') {
+            result = result.filter(job => job.isOpen === true);
+        } else if (sortValue === 'closed') {
+            result = result.filter(job => job.isOpen === false);
+        }
+
+        // Update filtered jobs
+        setFilteredJobs(result);
+
+        // Reset to first page when filters change
+        setCurrentPage(1);
+    };
+
+    // Handle filter/search changes
+    useEffect(() => {
+        setIsSearching(true);
         const debounceTimer = setTimeout(() => {
-            fetchJobs(sortOption);
-        }, 500);
+            applyFilters(jobs, sortOption, searchTerm);
+            setIsSearching(false);
+        }, 300);
 
         return () => clearTimeout(debounceTimer);
-    }, [sortOption, searchTerm]);
-
+    }, [sortOption, searchTerm, jobs]);
 
     const handleDeleteClick = (job) => {
         setSelectedJob(job);
@@ -245,7 +259,7 @@ const EmployerTableJobs = () => {
         doc.setFont('helvetica', 'normal');
         doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
 
-        const tableData = jobs.map(job => [
+        const tableData = filteredJobs.map(job => [
             job.title,
             job.company,
             job.location,
@@ -299,11 +313,14 @@ const EmployerTableJobs = () => {
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1);
     };
 
     const clearSearch = () => {
         setSearchTerm('');
+        // Keep focus on the search input after clearing
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
     };
 
     if (isLoading) {
@@ -324,6 +341,7 @@ const EmployerTableJobs = () => {
                     <div className="flex flex-wrap items-center space-x-4">
                         <div className="relative">
                             <input
+                                ref={searchInputRef}
                                 type="text"
                                 placeholder="Search by Job Title..."
                                 value={searchTerm}
@@ -355,7 +373,7 @@ const EmployerTableJobs = () => {
                         <button
                             onClick={handleExportPDF}
                             className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
-                           <FaRegFilePdf/> Export PDF
+                            <FaRegFilePdf /> Export PDF
                         </button>
                     </div>
                 </div>
@@ -378,10 +396,31 @@ const EmployerTableJobs = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {currentJobs.length === 0 ? (
+                            {isSearching ? (
                                 <tr>
-                                    <td colSpan="8" className="px-4 py-4 text-center text-gray-500">
-                                        No jobs found matching your search criteria.
+                                    <td colSpan="8" className="px-4 py-4 text-center">
+                                        <div className="flex justify-center items-center py-8">
+                                            <BeatLoader color="#36d7b7" size={10} />
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : currentJobs.length === 0 ? (
+                                <tr>
+                                    <td colSpan="8" className="px-4 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <p className="text-gray-500 text-lg font-medium">No jobs found matching your search criteria.</p>
+                                            {searchTerm && (
+                                                <button
+                                                    onClick={clearSearch}
+                                                    className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                                                >
+                                                    Clear Search
+                                                </button>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
@@ -447,9 +486,9 @@ const EmployerTableJobs = () => {
                         <div className="flex-1 flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{jobs.length > 0 ? indexOfFirstJob + 1 : 0}</span> to{" "}
-                                    <span className="font-medium">{Math.min(indexOfLastJob, jobs.length)}</span>{" "}
-                                    of <span className="font-medium">{jobs.length}</span> results
+                                    Showing <span className="font-medium">{filteredJobs.length > 0 ? indexOfFirstJob + 1 : 0}</span> to{" "}
+                                    <span className="font-medium">{Math.min(indexOfLastJob, filteredJobs.length)}</span>{" "}
+                                    of <span className="font-medium">{filteredJobs.length}</span> results
                                 </p>
 
                             </div>
