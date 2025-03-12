@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { CiSearch } from "react-icons/ci";
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, where } from "firebase/firestore";
+import { FaRegFilePdf } from "react-icons/fa6";
 import { db } from "../firebase";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -101,8 +102,7 @@ const Jobs = () => {
                 });
 
                 fetchedJobs.sort((a, b) => (b.jobPosted ? b.jobPosted.getTime() : 0) - (a.jobPosted ? a.jobPosted.getTime() : 0));
-
-                // Extract unique companies for the filter dropdown
+              
                 const uniqueCompanies = [...new Set(fetchedJobs.map(job => job.company))];
                 setCompanies(uniqueCompanies);
 
@@ -129,9 +129,7 @@ const Jobs = () => {
     }, [searchTerm, selectedCompany, jobs]);
 
     const filterJobs = () => {
-        let result = [...jobs];
-
-        // Filter by job title search
+        let result = [...jobs]
         if (searchTerm.trim() !== '') {
             const searchLower = searchTerm.toLowerCase();
             result = result.filter(job =>
@@ -335,13 +333,13 @@ const Jobs = () => {
                                 placeholder="Search by Job Title..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-3xl text-sm w-64 md:w-80"
+                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80"
                             />
                             <CiSearch className="absolute left-3 top-2.5 text-gray-400 text-lg" />
                             {searchTerm && (
                                 <button
                                     onClick={clearSearch}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-full text-xs"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-lg text-xs"
                                 >
                                     Clear
                                 </button>
@@ -352,7 +350,7 @@ const Jobs = () => {
                             <select
                                 value={sortOption}
                                 onChange={(e) => setSortOption(e.target.value)}
-                                className="border border-gray-300 rounded-full py-2 px-4 text-sm font-semibold text-gray-700 mb-2 sm:mb-0"
+                                className="border border-gray-300 rounded-lg py-2 px-4 text-sm text-gray-700 mb-2 sm:mb-0"
                             >
                                 <option value="all">All Jobs</option>
                                 <option value="open">Open</option>
@@ -364,7 +362,7 @@ const Jobs = () => {
                             <select
                                 value={selectedCompany}
                                 onChange={(e) => setSelectedCompany(e.target.value)}
-                                className="border border-gray-300 rounded-full py-2 px-4 text-sm font-semibold text-gray-700 mb-2 sm:mb-0"
+                                className="border border-gray-300 rounded-lg py-2 px-4 text-sm  text-gray-700 mb-2 sm:mb-0"
                             >
                                 <option value="all">All Companies</option>
                                 {companies.map((company) => (
@@ -372,11 +370,8 @@ const Jobs = () => {
                                 ))}
                             </select>
                         </div>
-                        <button
-                            onClick={handleExportPDF}
-                            className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
-                        >
-                            Export PDF
+                        <button onClick={handleExportPDF} className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
+                            <FaRegFilePdf /> Export PDF
                         </button>
                     </div>
                 </div>
@@ -384,18 +379,18 @@ const Jobs = () => {
 
             {/* Jobs Table */}
             <div className="max-w-8xl mx-auto pt-4">
-                <div className="shadow-md sm:rounded-3xl bg-white">
+                <div className="shadow-md sm:rounded-lg bg-white">
                     <table className="min-w-full border-gray-200 rounded-lg">
                         <thead>
                             <tr className="bg-gray-300">
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-2xl">Title</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Title</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Company</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Location</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Salary Range</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Job Posted</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Applicants</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Status</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-xl">Actions</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -433,7 +428,7 @@ const Jobs = () => {
                                                 {job.isOpen ? 'Open' : 'Closed'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-3xl text-gray-700 relative">
+                                        <td className="px-6 py-3 text-3xl text-gray-700 relative">
                                             <button className="text-gray-500 hover:text-blue-700" onClick={() => handleActionClick(job)}>
                                                 <AiOutlineEllipsis />
                                             </button>

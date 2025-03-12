@@ -3,12 +3,15 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { BeatLoader } from "react-spinners";
 import { CiSearch } from "react-icons/ci";
+import { IoChevronBackOutline } from "react-icons/io5";
+import { FaRegFilePdf } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 const DeletedLogsEmployersTable = () => {
     const [deletedEmployers, setDeletedEmployers] = useState([]);
+    const [filteredEmployers, setFilteredEmployers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -18,28 +21,19 @@ const DeletedLogsEmployersTable = () => {
         const fetchDeletedLogs = async () => {
             setIsLoading(true);
             try {
-                let logsQuery;
-
-                logsQuery = query(
+                // Fetch all employer deleted logs without filtering in the query
+                const logsQuery = query(
                     collection(db, "deleted_logs"),
                     where("accType", "==", "employer")
                 );
-
-                if (searchTerm.trim() !== "") {
-                    logsQuery = query(
-                        collection(db, "deleted_logs"),
-                        where("accType", "==", "employer"),
-                        where("companyName", ">=", searchTerm),
-                        where("companyName", "<=", searchTerm + "\uf8ff")
-                    );
-                }
 
                 const querySnapshot = await getDocs(logsQuery);
                 const logsData = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
-          
+
+                // Sort by deletion date (most recent first)
                 logsData.sort((a, b) => {
                     const aTime = a.deletedAt ? a.deletedAt.seconds : 0;
                     const bTime = b.deletedAt ? b.deletedAt.seconds : 0;
@@ -47,6 +41,7 @@ const DeletedLogsEmployersTable = () => {
                 });
 
                 setDeletedEmployers(logsData);
+                setFilteredEmployers(logsData);
             } catch (error) {
                 console.error('Error fetching deleted logs:', error);
             } finally {
@@ -54,18 +49,35 @@ const DeletedLogsEmployersTable = () => {
             }
         };
 
-        const debounceTimer = setTimeout(() => {
-            fetchDeletedLogs();
-        }, 500);
+        fetchDeletedLogs();
+    }, []);
 
-        return () => clearTimeout(debounceTimer);
-    }, [searchTerm]);
+    // Apply client-side filtering whenever searchTerm changes
+    useEffect(() => {
+        if (searchTerm.trim() === '') {
+            setFilteredEmployers(deletedEmployers);
+        } else {
+            const lowercaseSearch = searchTerm.toLowerCase();
+            const filtered = deletedEmployers.filter(employer => {
+                // Case-insensitive search on company name
+                const companyName = (employer.companyName || '').toLowerCase();
+                const email = (employer.email || '').toLowerCase();
+                const employerId = (employer.employerId || '').toLowerCase();
+                
+                return companyName.includes(lowercaseSearch) || 
+                       email.includes(lowercaseSearch) || 
+                       employerId.includes(lowercaseSearch);
+            });
+            setFilteredEmployers(filtered);
+            setCurrentPage(1); // Reset to first page when search changes
+        }
+    }, [searchTerm, deletedEmployers]);
 
     // Pagination logic
     const indexOfLastLog = currentPage * logsPerPage;
     const indexOfFirstLog = indexOfLastLog - logsPerPage;
-    const currentLogs = deletedEmployers.slice(indexOfFirstLog, indexOfLastLog);
-    const totalPages = Math.ceil(deletedEmployers.length / logsPerPage);
+    const currentLogs = filteredEmployers.slice(indexOfFirstLog, indexOfLastLog);
+    const totalPages = Math.ceil(filteredEmployers.length / logsPerPage);
 
     const paginate = (pageNumber) => {
         if (pageNumber > 0 && pageNumber <= totalPages) {
@@ -96,7 +108,7 @@ const DeletedLogsEmployersTable = () => {
         doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
 
         const headers = [['Employer ID', 'Company Name', 'Email', 'Deleted At']];
-        const tableData = deletedEmployers.map(log => [
+        const tableData = filteredEmployers.map(log => [
             log.employerId || 'N/A',
             log.companyName || 'N/A',
             log.email || 'N/A',
@@ -141,51 +153,45 @@ const DeletedLogsEmployersTable = () => {
         <div className="py-10 px-4 sm:px-6 lg:px-10">
             <div className="max-w-8xl mx-auto py-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Deleted Employer Logs</h1>
-                    <div className="flex space-x-2">
+                    <h1 className="text-2xl sm:text-2xl font-bold text-gray-800">Deleted Employer Logs</h1>
+                    <div className="flex space-x-4">
                         <div className="relative">
                             <input
                                 type="text"
-                                placeholder="Search by Company Name..."
+                                placeholder="Search by company, email, ID..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-3xl text-sm w-64 md:w-80"
+                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80"
                             />
                             <CiSearch className="absolute left-3 top-2.5 text-gray-400 text-lg" />
                             {searchTerm && (
                                 <button
                                     onClick={() => setSearchTerm('')}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-full text-xs"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-lg text-xs"
                                 >
                                     Clear
                                 </button>
                             )}
                         </div>
-                        <button
-                            onClick={handleExportPDF}
-                            className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
-                        >
-                            Export PDF
+                        <button onClick={handleExportPDF} className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
+                            <FaRegFilePdf /> Export PDF
                         </button>
-                        <Link
-                            to="/admin/manage-employers"
-                            className="bg-blue-600 text-white hover:bg-blue-700 py-2 px-4 rounded-full text-sm font-semibold"
-                        >
-                            Back to Employers
+                        <Link to="/admin/manage-employers" className="bg-blue-600 text-white hover:bg-blue-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
+                            <IoChevronBackOutline /> Back to Employers
                         </Link>
                     </div>
                 </div>
             </div>
-    
+
             <div className="max-w-8xl mx-auto pt-4">
-                <div className="shadow-md sm:rounded-3xl bg-white">
+                <div className="shadow-md sm:rounded-lg bg-white">
                     <table className="min-w-full border-gray-200 rounded-lg">
                         <thead>
                             <tr className="bg-gray-300">
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-xl">Employer ID</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Employer ID</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Company Name</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Email</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-xl">Deleted At</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Deleted At</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -198,10 +204,10 @@ const DeletedLogsEmployersTable = () => {
                             ) : (
                                 currentLogs.map((log) => (
                                     <tr key={log.id} className="border-b border-gray-200 hover:bg-gray-50">
-                                        <td className="px-3 py-4 text-sm text-gray-700">{log.employerId}</td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">{log.companyName || 'N/A'}</td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">{log.email || 'N/A'}</td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">{formatTimestamp(log.deletedAt)}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">{log.employerId}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">{log.companyName || 'N/A'}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">{log.email || 'N/A'}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">{formatTimestamp(log.deletedAt)}</td>
                                     </tr>
                                 ))
                             )}
@@ -213,11 +219,11 @@ const DeletedLogsEmployersTable = () => {
                         <div className="flex-1 flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{deletedEmployers.length > 0 ? indexOfFirstLog + 1 : 0}</span> to{" "}
+                                    Showing <span className="font-medium">{filteredEmployers.length > 0 ? indexOfFirstLog + 1 : 0}</span> to{" "}
                                     <span className="font-medium">
-                                        {Math.min(indexOfLastLog, deletedEmployers.length)}
+                                        {Math.min(indexOfLastLog, filteredEmployers.length)}
                                     </span>{" "}
-                                    of <span className="font-medium">{deletedEmployers.length}</span> results
+                                    of <span className="font-medium">{filteredEmployers.length}</span> results
                                 </p>
                             </div>
                             <div>

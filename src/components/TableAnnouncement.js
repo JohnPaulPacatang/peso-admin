@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineEllipsis } from "react-icons/ai";
-import { CiSearch } from "react-icons/ci"; // Added search icon import
+import { CiSearch } from "react-icons/ci";
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
+import { FaRegFilePdf } from "react-icons/fa6";
 import EditAnnouncementModal from "./EditAnnouncementModal";
 
 const TableAnnouncements = () => {
@@ -29,22 +30,26 @@ const TableAnnouncements = () => {
             try {
                 // Declare the base query
                 let announcementsQuery;
+                const normalizedSearchTerm = searchTerm.trim().toLowerCase();
 
-                if (searchTerm.trim() !== "") {
-                    announcementsQuery = query(
-                        collection(db, "announcements"),
-                        where("title", ">=", searchTerm),
-                        where("title", "<=", searchTerm + "\uf8ff")
-                    );
+                if (normalizedSearchTerm !== "") {
+                    // Fetch all announcements since we need to filter manually for case-insensitive search
+                    announcementsQuery = collection(db, "announcements");
                 } else {
                     announcementsQuery = collection(db, "announcements");
                 }
 
                 const querySnapshot = await getDocs(announcementsQuery);
-                const announcementsData = querySnapshot.docs.map((doc) => ({
+                let announcementsData = querySnapshot.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
+
+                if (normalizedSearchTerm !== "") {
+                    announcementsData = announcementsData.filter((announcement) =>
+                        announcement.title.toLowerCase().includes(normalizedSearchTerm)
+                    );
+                }
 
                 // Sort by date (newest first)
                 announcementsData.sort((a, b) => {
@@ -244,7 +249,7 @@ const TableAnnouncements = () => {
             <div className="max-w-8xl mx-auto py-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Announcements</h1>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-3">
                         {/* Search input with icon */}
                         <div className="relative">
                             <input
@@ -252,23 +257,20 @@ const TableAnnouncements = () => {
                                 placeholder="Search by Title..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-3xl text-sm w-64 md:w-80"
+                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80"
                             />
                             <CiSearch className="absolute left-3 top-2.5 text-gray-400 text-lg" />
                             {searchTerm && (
                                 <button
                                     onClick={clearSearch}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-full text-xs"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-lg text-xs"
                                 >
                                     Clear
                                 </button>
                             )}
                         </div>
-                        <button
-                            onClick={handleExportPDF}
-                            className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
-                        >
-                            Export PDF
+                        <button onClick={handleExportPDF} className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
+                            <FaRegFilePdf /> Export PDF
                         </button>
                     </div>
                 </div>
@@ -276,15 +278,15 @@ const TableAnnouncements = () => {
 
             {/* Announcements Table */}
             <div className="max-w-8xl mx-auto pt-4">
-                <div className="shadow-md sm:rounded-3xl bg-white">
-                    <table className="min-w-full border-gray-200 rounded-xl">
+                <div className="shadow-md sm:rounded-lg bg-white">
+                    <table className="min-w-full border-gray-200 rounded-lg">
                         <thead>
                             <tr className="bg-gray-300">
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-xl">Title</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Title</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Description</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Location</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Posted Date</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-xl">Actions</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -297,13 +299,13 @@ const TableAnnouncements = () => {
                             ) : (
                                 currentAnnouncements.map((announcement) => (
                                     <tr key={announcement.id} className="border-b border-gray-200">
-                                        <td className="px-3 py-4 text-sm text-gray-700">{announcement.title}</td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">{announcement.description}</td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">{announcement.location}</td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">
+                                        <td className="px-3 py-3 text-sm text-gray-700">{announcement.title}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">{announcement.description}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">{announcement.location}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">
                                             {announcement.date && announcement.date.toDate().toLocaleDateString()}
                                         </td>
-                                        <td className="px-3 py-4 text-3xl text-gray-700 relative">
+                                        <td className="px-3 py-3 text-3xl text-gray-700 relative">
                                             <button
                                                 className="text-gray-500 hover:text-blue-700 text-center"
                                                 onClick={() => handleActionClick(announcement)}>

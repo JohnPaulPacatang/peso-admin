@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { CiSearch } from "react-icons/ci";
+import { FaRegFilePdf } from "react-icons/fa6";
+import { MdOutlineAutoDelete } from "react-icons/md";
 import { db } from '../firebase';
-import { collection, getDocs, deleteDoc, doc, updateDoc, query, where, addDoc } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import { Link } from "react-router-dom";
@@ -26,33 +28,52 @@ const TableUsers = () => {
     const fetchUsers = async () => {
       setIsLoading(true);
       try {
-        let usersQuery;
+        let querySnapshot;
+        const lowercaseSearchTerm = searchTerm.trim().toLowerCase();
 
-        if (searchTerm.trim() !== "") {
-          // Search by name in database
-          usersQuery = query(
-            collection(db, "profiles"),
-            where("name", ">=", searchTerm),
-            where("name", "<=", searchTerm + "\uf8ff")
+        if (lowercaseSearchTerm !== "") {
+          // Fetch all profiles and filter client-side for case-insensitive search
+          const profilesRef = collection(db, "profiles");
+          querySnapshot = await getDocs(profilesRef);
+
+          const allUsersData = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          // Filter client-side for case-insensitive search
+          const filteredUsers = allUsersData.filter(user =>
+            user.name &&
+            user.name.toLowerCase().includes(lowercaseSearchTerm)
           );
+
+          // Sort the filtered results
+          filteredUsers.sort((a, b) => {
+            const aTime = a.createdAt ? a.createdAt.seconds : 0;
+            const bTime = b.createdAt ? b.createdAt.seconds : 0;
+            return bTime - aTime;
+          });
+
+          setUsers(filteredUsers);
         } else {
           // If no search term, fetch all users
-          usersQuery = collection(db, "profiles");
+          const profilesRef = collection(db, "profiles");
+          querySnapshot = await getDocs(profilesRef);
+
+          const usersData = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          // Sort by creation time
+          usersData.sort((a, b) => {
+            const aTime = a.createdAt ? a.createdAt.seconds : 0;
+            const bTime = b.createdAt ? b.createdAt.seconds : 0;
+            return bTime - aTime;
+          });
+
+          setUsers(usersData);
         }
-
-        const querySnapshot = await getDocs(usersQuery);
-        const usersData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        usersData.sort((a, b) => {
-          const aTime = a.createdAt ? a.createdAt.seconds : 0;
-          const bTime = b.createdAt ? b.createdAt.seconds : 0;
-          return bTime - aTime;
-        });
-
-        setUsers(usersData);
       } catch (error) {
         console.error('Error fetching users:', error);
         toast.error("Failed to fetch users");
@@ -279,7 +300,7 @@ const TableUsers = () => {
     <div className="py-10 px-4 sm:px-6 lg:px-10">
       <div className="max-w-8xl mx-auto py-4">
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Manage Users</h1>
+          <h1 className="text-2xl sm:text-2xl font-bold text-gray-800">Manage Users</h1>
           <div className="flex space-x-4">
             <div className="relative">
               <input
@@ -287,46 +308,43 @@ const TableUsers = () => {
                 placeholder="Search by Name..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="border border-gray-300 pl-10 pr-4 py-2 rounded-3xl text-sm w-64 md:w-80"
+                className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80"
               />
               <CiSearch className="absolute left-3 top-2.5 text-gray-400 text-lg" />
               {searchTerm && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-full text-xs"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-lg text-xs"
                 >
                   Clear
                 </button>
               )}
             </div>
-            <button
-              onClick={handleExportPDF}
-              className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
-            >
-              Export PDF
+            <button onClick={handleExportPDF} className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
+              <FaRegFilePdf /> Export PDF
             </button>
             <Link
               to="/admin/deleted-users"
-              className="bg-red-600 text-white hover:bg-red-700 py-2 px-4 rounded-full text-sm font-semibold transition duration-300"
+              className="bg-red-600 text-white hover:bg-red-700 py-2 px-4 rounded-lg text-sm transition duration-300 flex items-center gap-1"
             >
-              View Deleted Logs
+              <MdOutlineAutoDelete />  View Deleted Logs
             </Link>
           </div>
         </div>
       </div>
 
       <div className="max-w-8xl mx-auto pt-4">
-        <div className="shadow-md sm:rounded-3xl bg-white">
+        <div className="shadow-md sm:rounded-lg bg-white">
           <table className="min-w-full border-gray-200 rounded-lg">
             <thead>
               <tr className="bg-gray-300">
-                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-xl">Name</th>
+                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Name</th>
                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Email</th>
                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Contact Number</th>
                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Address</th>
                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Verified</th>
                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Created At</th>
-                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-xl">Actions</th>
+                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -339,8 +357,8 @@ const TableUsers = () => {
               ) : (
                 currentUsers.map((user, index) => (
                   <tr key={user.id || index} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="px-3 py-4 text-sm text-gray-700">{user.name}</td>
-                    <td className="px-3 py-4 text-sm text-gray-700">
+                    <td className="px-3 py-3 text-sm text-gray-700">{user.name}</td>
+                    <td className="px-3 py-3 text-sm text-gray-700">
                       <a
                         href={`https://mail.google.com/mail/?view=cm&fs=1&to=${user.email}`}
                         target="_blank"
@@ -351,9 +369,9 @@ const TableUsers = () => {
                       </a>
                     </td>
 
-                    <td className="px-3 py-4 text-sm text-gray-700">{user.contactNumber || '-'}</td>
-                    <td className="px-3 py-4 text-sm text-gray-700">{truncateText(user.address) || '-'}</td>
-                    <td className="px-3 py-4 text-sm text-gray-700">
+                    <td className="px-3 py-3 text-sm text-gray-700">{user.contactNumber || '-'}</td>
+                    <td className="px-3 py-3 text-sm text-gray-700">{truncateText(user.address) || '-'}</td>
+                    <td className="px-3 py-3 text-sm text-gray-700">
                       {user.isVerified ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-600">
                           Verified
@@ -364,8 +382,8 @@ const TableUsers = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-4 text-sm text-gray-700">{formatTimestamp(user.createdAt)}</td>
-                    <td className="px-3 py-4 text-3xl text-gray-700 relative">
+                    <td className="px-3 py-3 text-sm text-gray-700">{formatTimestamp(user.createdAt)}</td>
+                    <td className="px-3 py-3 text-3xl text-gray-700 relative">
                       <button
                         className="text-gray-500 hover:text-blue-700"
                         onClick={() => handleActionClick(user)}

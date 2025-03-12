@@ -52,7 +52,7 @@ function PostAnnouncementForm() {
   return (
     <div className="py-12 px-4 sm:px-6 lg:px-10">
       <h1 className="text-3xl font-bold text-gray-700 mb-6">Post a New Announcement</h1>
-      <div className="mx-auto bg-white p-8 rounded-3xl shadow-md">
+      <div className="mx-auto bg-white p-8 rounded-lg shadow-md">
         <form onSubmit={handleSubmit}>
           <div className="p-3">
             <h2 className="text-xl font-medium text-gray-800 mb-4">Announcement Details</h2>
@@ -66,7 +66,7 @@ function PostAnnouncementForm() {
                 placeholder="Ex: Sales Manager"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
 
@@ -79,8 +79,8 @@ function PostAnnouncementForm() {
                 placeholder="We are searching for an experienced Sales Manager to drive revenue growth."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-                rows="4"
+                className="w-full border border-gray-300 rounded-lg px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                rows="6"
               ></textarea>
             </div>
 
@@ -94,7 +94,7 @@ function PostAnnouncementForm() {
                 placeholder="Ex: Pasay City, Metro Manila"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full border border-gray-300 rounded-3xl px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>

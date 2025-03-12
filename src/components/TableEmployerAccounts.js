@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { CiSearch } from "react-icons/ci";
+import { FaRegFilePdf } from "react-icons/fa6";
+import { MdOutlineAutoDelete } from "react-icons/md";
 import { db } from '../firebase';
-import { collection, getDocs, deleteDoc, doc, updateDoc, query, where, addDoc, orderBy } from 'firebase/firestore';
+import { collection, getDocs, deleteDoc, doc, updateDoc, query, addDoc, orderBy } from 'firebase/firestore';
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import { Link } from "react-router-dom";
@@ -27,41 +29,42 @@ const ManageEmployerAccounts = () => {
             setIsLoading(true);
             try {
                 let employersQuery;
+                const lowercaseSearchTerm = searchTerm.trim().toLowerCase();
 
-                if (searchTerm.trim() !== "") {
-                    // Search by companyName in database
-                    employersQuery = query(
-                        collection(db, "employers"),
-                        where("companyName", ">=", searchTerm),
-                        where("companyName", "<=", searchTerm + "\uf8ff")
-                    );
-                } else {
+                if (lowercaseSearchTerm !== "") {
                     employersQuery = query(
                         collection(db, "employers"),
                         orderBy("createdAt", "desc")
                     );
+
+                    const querySnapshot = await getDocs(employersQuery);
+                    const allEmployersData = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    }));
+
+                    // Filter client-side for case-insensitive search
+                    const filteredEmployers = allEmployersData.filter(employer =>
+                        employer.companyName &&
+                        employer.companyName.toLowerCase().includes(lowercaseSearchTerm)
+                    );
+
+                    setAccounts(filteredEmployers);
+                } else {
+                    // No search term, get all employers sorted by creation date
+                    employersQuery = query(
+                        collection(db, "employers"),
+                        orderBy("createdAt", "desc")
+                    );
+
+                    const querySnapshot = await getDocs(employersQuery);
+                    const employersData = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data(),
+                    }));
+
+                    setAccounts(employersData);
                 }
-
-                const querySnapshot = await getDocs(employersQuery);
-                const employersData = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
-
-
-                if (searchTerm.trim() !== "") {
-                    employersData.sort((a, b) => {
-                        if (!a.createdAt) return 1;
-                        if (!b.createdAt) return -1;
-
-                        const timeA = a.createdAt.toDate ? a.createdAt.toDate().getTime() : a.createdAt;
-                        const timeB = b.createdAt.toDate ? b.createdAt.toDate().getTime() : b.createdAt;
-
-                        return timeB - timeA;
-                    });
-                }
-
-                setAccounts(employersData);
             } catch (error) {
                 console.error('Error fetching employers:', error);
                 toast.error("Failed to fetch employers");
@@ -126,7 +129,6 @@ const ManageEmployerAccounts = () => {
                 // Then delete the employer from employers collection
                 await deleteDoc(doc(db, "employers", accountToDelete.id));
 
-                // Update UI
                 setAccounts(accounts.filter(acc => acc.id !== accountToDelete.id));
                 setIsDeleteConfirmOpen(false);
                 setAccountToDelete(null);
@@ -293,40 +295,37 @@ const ManageEmployerAccounts = () => {
                                 placeholder="Search by Company Name..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-3xl text-sm w-64 md:w-80"
+                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80"
                             />
                             <CiSearch className="absolute left-3 top-2.5 text-gray-400 text-lg" />
                             {searchTerm && (
                                 <button
                                     onClick={clearSearch}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-full text-xs"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-lg text-xs"
                                 >
                                     Clear
                                 </button>
                             )}
                         </div>
-                        <button
-                            onClick={handleExportPDF}
-                            className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
-                        >
-                            Export PDF
+                        <button onClick={handleExportPDF} className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
+                            <FaRegFilePdf /> Export PDF
                         </button>
                         <Link
                             to="/admin/deleted-employers"
-                            className="bg-red-600 text-white hover:bg-red-700 py-2 px-4 rounded-full text-sm font-semibold transition duration-300"
+                            className="bg-red-600 text-white hover:bg-red-700 py-2 px-4 rounded-lg text-sm transition duration-300 flex items-center gap-1"
                         >
-                            View Deleted Logs
+                            <MdOutlineAutoDelete />  View Deleted Logs
                         </Link>
                     </div>
                 </div>
             </div>
 
             <div className="max-w-8xl mx-auto pt-4">
-                <div className="shadow-md sm:rounded-3xl bg-white">
+                <div className="shadow-md sm:rounded-lg bg-white">
                     <table className="min-w-full border-gray-200 rounded-lg">
                         <thead>
                             <tr className="bg-gray-300">
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-xl">Company Name</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Company Name</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Email</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Contact Person</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Contact Email</th>
@@ -334,7 +333,7 @@ const ManageEmployerAccounts = () => {
                                 {/* <th className="px-3 py-3 text-left text-sm font-semibold text-black">Created Date</th> */}
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Permit</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Verified</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-xl">Actions</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -347,8 +346,8 @@ const ManageEmployerAccounts = () => {
                             ) : (
                                 currentAccounts.map((account, index) => (
                                     <tr key={account.id || index} className="border-b border-gray-200 hover:bg-gray-50">
-                                        <td className="px-3 py-4 text-sm text-gray-700">{account.companyName}</td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">
+                                        <td className="px-3 py-3 text-sm text-gray-700">{account.companyName}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">
                                             <a
                                                 href={`https://mail.google.com/mail/?view=cm&fs=1&to=${account.email}`}
                                                 target="_blank"
@@ -358,8 +357,8 @@ const ManageEmployerAccounts = () => {
                                                 {account.email}
                                             </a>
                                         </td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">{account.contact_person_name || '-'}</td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">
+                                        <td className="px-3 py-3 text-sm text-gray-700">{account.contact_person_name || '-'}</td>
+                                        <td className="px-3 py-3 text-sm text-gray-700">
                                             {account.contact_person_email ? (
                                                 <a
                                                     href={`https://mail.google.com/mail/?view=cm&fs=1&to=${account.contact_person_email}`}
@@ -373,9 +372,9 @@ const ManageEmployerAccounts = () => {
                                                 '-'
                                             )}
                                         </td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">{truncateText(account.company_address) || '-'}</td>
-                                        {/* <td className="px-3 py-4 text-sm text-gray-700">{formatCreatedDate(account.createdAt)}</td> */}
-                                        <td className="px-3 py-4 text-sm text-gray-700">
+                                        <td className="px-3 py-3 text-sm text-gray-700">{truncateText(account.company_address) || '-'}</td>
+                                        {/* <td className="px-3 py-3 text-sm text-gray-700">{formatCreatedDate(account.createdAt)}</td> */}
+                                        <td className="px-3 py-3 text-sm text-gray-700">
                                             {account.business_permit ? (
                                                 <a
                                                     href={account.business_permit}
@@ -387,7 +386,7 @@ const ManageEmployerAccounts = () => {
                                                 </a>
                                             ) : '-'}
                                         </td>
-                                        <td className="px-3 py-4 text-sm text-gray-700">
+                                        <td className="px-3 py-3 text-sm text-gray-700">
                                             {account.verified ? (
                                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                     Verified
@@ -398,7 +397,7 @@ const ManageEmployerAccounts = () => {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-3 py-4 text-3xl text-gray-700 relative">
+                                        <td className="px-3 py-3 text-3xl text-gray-700 relative">
                                             <button
                                                 className="text-gray-500 hover:text-blue-700"
                                                 onClick={() => handleActionClick(account)}

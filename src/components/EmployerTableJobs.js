@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { CiSearch } from "react-icons/ci";
+import { FaRegFilePdf } from "react-icons/fa6";
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, where, } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-hot-toast";
@@ -76,15 +77,12 @@ const EmployerTableJobs = () => {
 
                 const { uid: employerUid, companyName } = employerData;
                 let jobsQuery;
+                const lowercaseSearchTerm = searchTerm.trim().toLowerCase();
 
-                // Check if there's a search term first
-                if (searchTerm.trim() !== "") {
-                    // Search by job title
-                    jobsQuery = query(
-                        collection(db, 'jobs'),
-                        where('job_title', '>=', searchTerm),
-                        where('job_title', '<=', searchTerm + "\uf8ff")
-                    );
+                // First check for search term
+                if (lowercaseSearchTerm !== "") {
+                    // Use a general query and filter for case-insensitive search later
+                    jobsQuery = collection(db, 'jobs');
                 } else {
                     // If no search term, apply the sort filter
                     if (sortValue === 'open') {
@@ -98,7 +96,7 @@ const EmployerTableJobs = () => {
                 }
 
                 const querySnapshot = await getDocs(jobsQuery);
-                const fetchedJobs = querySnapshot.docs
+                let fetchedJobs = querySnapshot.docs
                     .map((doc) => {
                         const data = doc.data();
                         return {
@@ -120,8 +118,19 @@ const EmployerTableJobs = () => {
                             employerUid: data.employerUid || "",
                         };
                     })
-                    .filter((job) => job.employerUid === employerUid || job.company === companyName)
-                    .sort((a, b) => (b.jobPosted ? b.jobPosted.getTime() : 0) - (a.jobPosted ? a.jobPosted.getTime() : 0));
+                    .filter((job) => job.employerUid === employerUid || job.company === companyName);
+
+                // Apply case-insensitive search filter if search term exists
+                if (lowercaseSearchTerm !== "") {
+                    fetchedJobs = fetchedJobs.filter(job =>
+                        job.title && job.title.toLowerCase().includes(lowercaseSearchTerm)
+                    );
+                }
+
+                // Sort by post date
+                fetchedJobs.sort((a, b) =>
+                    (b.jobPosted ? b.jobPosted.getTime() : 0) - (a.jobPosted ? a.jobPosted.getTime() : 0)
+                );
 
                 setJobs(fetchedJobs);
             } catch (error) {
@@ -319,13 +328,13 @@ const EmployerTableJobs = () => {
                                 placeholder="Search by Job Title..."
                                 value={searchTerm}
                                 onChange={handleSearchChange}
-                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-3xl text-sm w-64 md:w-80"
+                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm w-64 md:w-80"
                             />
                             <CiSearch className="absolute left-3 top-2.5 text-gray-400 text-lg" />
                             {searchTerm && (
                                 <button
                                     onClick={clearSearch}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-full text-xs"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-lg text-xs"
                                 >
                                     Clear
                                 </button>
@@ -336,7 +345,7 @@ const EmployerTableJobs = () => {
                             <select
                                 value={sortOption}
                                 onChange={(e) => setSortOption(e.target.value)}
-                                className="border border-gray-300 rounded-full py-2 px-4 text-sm font-semibold text-gray-700 mb-2 sm:mb-0"
+                                className="border border-gray-300 rounded-lg py-2 px-4 text-sm text-gray-700 mb-2 sm:mb-0"
                             >
                                 <option value="all">All Jobs</option>
                                 <option value="open">Open</option>
@@ -345,9 +354,8 @@ const EmployerTableJobs = () => {
                         </div>
                         <button
                             onClick={handleExportPDF}
-                            className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
-                        >
-                            Export PDF
+                            className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
+                           <FaRegFilePdf/> Export PDF
                         </button>
                     </div>
                 </div>
@@ -355,18 +363,18 @@ const EmployerTableJobs = () => {
 
             {/* Jobs Table */}
             <div className="max-w-8xl mx-auto pt-4">
-                <div className="shadow-md sm:rounded-3xl bg-white">
+                <div className="shadow-md sm:rounded-lg bg-white">
                     <table className="min-w-full border-gray-200 rounded-lg">
                         <thead>
                             <tr className="bg-gray-300">
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-xl">Title</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Title</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Company</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Location</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Salary Range</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Job Posted</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Applicants</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Status</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-xl">Actions</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -404,7 +412,7 @@ const EmployerTableJobs = () => {
                                                 {job.isOpen ? 'Open' : 'Closed'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-3xl text-gray-700 relative">
+                                        <td className="px-6 py-3 text-3xl text-gray-700 relative">
                                             <button className="text-gray-500 hover:text-blue-700" onClick={() => handleActionClick(job)}>
                                                 <AiOutlineEllipsis />
                                             </button>

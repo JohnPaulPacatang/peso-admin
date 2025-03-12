@@ -173,7 +173,7 @@ function EmployerDashboard() {
     fetchEmployerData();
   }, [employerUid, chartView]);
   
-  const processApplicationsData = (applications, jobs, viewType) => {
+  const processApplicationsData = (applications, _jobs, viewType) => {
     let dateFormat, periodStart, groupLabel;
     
     switch (viewType) {
@@ -354,6 +354,7 @@ function EmployerDashboard() {
                   axisLine={false}
                   tickLine={false}
                   dx={-10}
+                  domain={[0, 12]}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ bottom: 0 }} />

@@ -333,6 +333,7 @@ function Dashboard() {
                   axisLine={false}
                   tickLine={false}
                   dx={-10}
+                  domain={[0, 12]}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ bottom: 0 }} />

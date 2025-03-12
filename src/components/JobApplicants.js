@@ -6,6 +6,8 @@ import { format } from 'date-fns';
 import { BeatLoader } from "react-spinners";
 import { CiSearch } from "react-icons/ci";
 import { MdDeleteForever } from "react-icons/md";
+import { IoChevronBackOutline } from "react-icons/io5";
+import { FaRegFilePdf } from "react-icons/fa6";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import toast from 'react-hot-toast';
@@ -180,22 +182,19 @@ const JobApplicants = () => {
     
     const deleteApplication = async () => {
         try {
-            // Delete the application document from Firestore
             await deleteDoc(doc(db, 'applications', applicationToDelete.id));
-            
-            // Update the state to remove the deleted application
+         
             const updatedApplications = applications.filter(app => app.id !== applicationToDelete.id);
             setApplications(updatedApplications);
             setFilteredApplications(updatedApplications);
-            
-            // Reset the application to delete
+           
             setApplicationToDelete(null);
             
-            return true; // Return for toast.promise
+            return true; 
         } catch (error) {
             console.error('Error deleting application:', error);
             setApplicationToDelete(null);
-            throw error; // Throw for toast.promise to catch
+            throw error; 
         }
     };
 
@@ -220,13 +219,13 @@ const JobApplicants = () => {
                                 placeholder="Search by name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-full text-sm"
+                                className="border border-gray-300 pl-10 pr-4 py-2 rounded-lg text-sm"
                             />
                             <CiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                             {searchTerm && (
                                 <button
                                     onClick={clearSearch}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-full text-xs"
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-gray-200 text-gray-700 hover:bg-gray-300 py-1 px-2 rounded-lg text-xs"
                                 >
                                     Clear
                                 </button>
@@ -234,15 +233,13 @@ const JobApplicants = () => {
                         </div>
                         <button
                             onClick={handleExportPDF}
-                            className="bg-green-500 text-white hover:bg-green-700 py-2 px-4 rounded-full text-sm font-semibold"
-                        >
-                            Export PDF
+                            className="bg-green-500 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
+                            <FaRegFilePdf /> Export PDF
                         </button>
                         <button
                             onClick={() => navigate(-1)}
-                            className="bg-blue-500 text-white hover:bg-blue-700 py-2 px-4 rounded-full text-sm font-semibold"
-                        >
-                            Back to Jobs
+                            className="bg-blue-500 text-white hover:bg-blue-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
+                            <IoChevronBackOutline/> Back to Jobs
                         </button>
                     </div>
                 </div>
@@ -252,13 +249,13 @@ const JobApplicants = () => {
                         <table className="min-w-full">
                             <thead>
                                 <tr className="bg-gray-300">
-                                    <th className="px-4 py-3 text-left text-sm font-semibold text-black">Applicant Name</th>
+                                    <th className="px-4 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Applicant Name</th>
                                     <th className="px-4 py-3 text-left text-sm font-semibold text-black">Email</th>
                                     <th className="px-4 py-3 text-left text-sm font-semibold text-black">Contact</th>
                                     <th className="px-4 py-3 text-left text-sm font-semibold text-black">Address</th>
                                     <th className="px-4 py-3 text-left text-sm font-semibold text-black">Application Date</th>
                                     <th className="px-4 py-3 text-left text-sm font-semibold text-black">Resume</th>
-                                    <th className="px-4 py-3 text-center text-sm font-semibold text-black">Actions</th>
+                                    <th className="px-4 py-3 text-center text-sm font-semibold text-black rounded-tr-lg">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
