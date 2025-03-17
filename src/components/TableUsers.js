@@ -84,12 +84,12 @@ const TableUsers = () => {
         const filtered = users.filter(user =>
           user.name && user.name.toLowerCase().includes(lowercaseSearchTerm)
         );
-        
+
         // Update filtered results
         setFilteredUsers(filtered);
         setIsSearching(false);
       }
-      
+
       // Reset to first page when search results change
       setCurrentPage(1);
     }, 500); // 500ms debounce delay
@@ -153,7 +153,7 @@ const TableUsers = () => {
         setFilteredUsers(
           filteredUsers.filter(user => user.id !== userToDelete.id)
         );
-        
+
         setIsDeleteConfirmOpen(false);
         setUserToDelete(null);
 
@@ -201,7 +201,7 @@ const TableUsers = () => {
         const updatedUsers = users.map(user =>
           user.id === editingUser.id ? { ...user, ...editingUser } : user
         );
-        
+
         setUsers(updatedUsers);
         setFilteredUsers(
           filteredUsers.map(user =>
@@ -232,15 +232,27 @@ const TableUsers = () => {
   const handleExportPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     const marginX = 10;
 
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(52, 73, 94);
     doc.text('User Profiles Report', pageWidth / 2, 20, { align: 'center' });
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
+    doc.setTextColor(100, 100, 100);
+    const formattedDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    doc.text(`Generated on ${formattedDate}`, pageWidth / 2, 28, { align: 'center' });
+
+    doc.setDrawColor(52, 73, 94);
+    doc.setLineWidth(0.5);
+    doc.line(marginX, 31, pageWidth - marginX, 31);
 
     const headers = [['Name', 'Email', 'Contact Number', 'Address', 'Verified', 'Created At']];
     const tableData = filteredUsers.map(user => [
@@ -271,10 +283,27 @@ const TableUsers = () => {
       alternateRowStyles: {
         fillColor: [245, 245, 245]
       },
-      margin: { left: marginX, right: marginX, top: 35 }
+      margin: { left: marginX, right: marginX, top: 35 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
     });
 
-    window.open(doc.output('bloburl'), '_blank');
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    iframe.src = pdfUrl;
+    iframe.onload = () => {
+      iframe.contentWindow.print();
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        URL.revokeObjectURL(pdfUrl);
+      }, 1000);
+    };
   };
 
   useEffect(() => {
@@ -470,62 +499,62 @@ const TableUsers = () => {
               )}
             </tbody>
           </table>
-       
-            <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
-              <div className="flex-1 flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Showing <span className="font-medium">{filteredUsers.length > 0 ? indexOfFirstUser + 1 : 0}</span> to{" "}
-                    <span className="font-medium">
-                      {Math.min(indexOfLastUser, filteredUsers.length)}
-                    </span>{" "}
-                    of <span className="font-medium">{filteredUsers.length}</span> results
-                  </p>
-                </div>
-                <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+
+          <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
+            <div className="flex-1 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{filteredUsers.length > 0 ? indexOfFirstUser + 1 : 0}</span> to{" "}
+                  <span className="font-medium">
+                    {Math.min(indexOfLastUser, filteredUsers.length)}
+                  </span>{" "}
+                  of <span className="font-medium">{filteredUsers.length}</span> results
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => paginate(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium ${currentPage === 1
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                  >
+                    <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+
+                  {[...Array(totalPages)].map((_, i) => (
                     <button
-                      onClick={() => paginate(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-xs font-medium ${currentPage === 1
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-500 hover:bg-gray-50'
+                      key={i}
+                      onClick={() => paginate(i + 1)}
+                      className={`relative inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-large ${currentPage === i + 1
+                        ? 'z-10 bg-blue-50 border-blue text-blue'
+                        : 'bg-white text-gray-500 hover:bg-gray-50'
                         }`}
                     >
-                      <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+                      {i + 1}
                     </button>
+                  ))}
 
-                    {[...Array(totalPages)].map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => paginate(i + 1)}
-                        className={`relative inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-large ${currentPage === i + 1
-                          ? 'z-10 bg-blue-50 border-blue text-blue'
-                          : 'bg-white text-gray-500 hover:bg-gray-50'
-                          }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-
-                    <button
-                      onClick={() => paginate(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium ${currentPage === totalPages
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-500 hover:bg-gray-50'
-                        }`}
-                    >
-                      <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </nav>
-                </div>
+                  <button
+                    onClick={() => paginate(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-xs font-medium ${currentPage === totalPages
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                  >
+                    <svg className="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </nav>
               </div>
             </div>
+          </div>
         </div>
       </div>
 

@@ -227,15 +227,27 @@ const ManageEmployerAccounts = () => {
     const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
         const marginX = 10;
-
+   
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
+        doc.setTextColor(52, 73, 94); 
         doc.text('Employer Accounts Report', pageWidth / 2, 20, { align: 'center' });
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, 28, { align: 'center' });
+        doc.setTextColor(100, 100, 100); 
+        const formattedDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }); 
+        doc.text(`Generated on ${formattedDate}`, pageWidth / 2, 28, { align: 'center' });
+
+        doc.setDrawColor(52, 73, 94); 
+        doc.setLineWidth(0.5);
+        doc.line(marginX, 31, pageWidth - marginX, 31);
 
         const headers = [['Company Name', 'Email', 'Contact Person', 'Contact Email', 'Address', 'Created Date', 'Verified']];
         const tableData = filteredAccounts.map(acc => [
@@ -254,25 +266,42 @@ const ManageEmployerAccounts = () => {
             startY: 35,
             tableWidth: 'auto',
             styles: {
-                fontSize: 7,
-                cellPadding: 3,
+                fontSize: 7, 
+                cellPadding: 3, 
                 overflow: 'linebreak'
             },
             headStyles: {
                 fillColor: [52, 73, 94],
                 textColor: 255,
-                fontSize: 8,
+                fontSize: 8, 
                 fontStyle: 'bold'
             },
             alternateRowStyles: {
                 fillColor: [245, 245, 245]
             },
-            margin: { left: marginX, right: marginX, top: 35 }
+            margin: { left: marginX, right: marginX, top: 35 },
+            didDrawPage: () => { 
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+            }
         });
 
-        window.open(doc.output('bloburl'), '_blank');
+        const pdfBlob = doc.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        iframe.src = pdfUrl;
+        iframe.onload = () => {
+            iframe.contentWindow.print();
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+                URL.revokeObjectURL(pdfUrl);
+            }, 1000);
+        };
     };
-
+    
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
