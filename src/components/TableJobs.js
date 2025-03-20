@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { CiSearch } from "react-icons/ci";
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, where } from "firebase/firestore";
-import { FaRegFilePdf } from "react-icons/fa6";
+import { FaRegFilePdf, FaFileCsv } from "react-icons/fa6";
+import { CSVLink } from 'react-csv';
 import { db } from "../firebase";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { BeatLoader } from "react-spinners";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+
 
 const Jobs = () => {
     const navigate = useNavigate();
@@ -121,22 +123,8 @@ const Jobs = () => {
         fetchJobs(sortOption);
     }, [sortOption]);
 
-
-    useEffect(() => {
-        setIsSearching(true);
-        const debounceTimer = setTimeout(() => {
-            filterJobs();
-            setIsSearching(false);
-            if (searchTerm.trim() !== '' && searchInputRef.current) {
-                searchInputRef.current.focus();
-            }
-        }, 500);
-
-        return () => clearTimeout(debounceTimer);
-    }, [searchTerm, selectedCompany, jobs]);
-
-    const filterJobs = () => {
-        let result = [...jobs]
+    const filterJobs = useCallback(() => {
+        let result = [...jobs];
         if (searchTerm.trim() !== '') {
             const searchLower = searchTerm.toLowerCase();
             result = result.filter(job =>
@@ -150,7 +138,20 @@ const Jobs = () => {
 
         setFilteredJobs(result);
         setCurrentPage(1);
-    };
+    }, [jobs, searchTerm, selectedCompany]);
+
+    useEffect(() => {
+        setIsSearching(true);
+        const debounceTimer = setTimeout(() => {
+            filterJobs();
+            setIsSearching(false);
+            if (searchTerm.trim() !== '' && searchInputRef.current) {
+                searchInputRef.current.focus();
+            }
+        }, 500);
+
+        return () => clearTimeout(debounceTimer);
+    }, [searchTerm, selectedCompany, jobs, filterJobs]);
 
     const handleDeleteClick = (job) => {
         setSelectedJob(job);
@@ -317,6 +318,31 @@ const Jobs = () => {
         };
     };
 
+    const prepareCSVData = () => {
+        const headers = [
+            { label: 'Title', key: 'title' },
+            { label: 'Company', key: 'company' },
+            { label: 'Location', key: 'location' },
+            { label: 'Salary Range', key: 'salaryRange' },
+            { label: 'Posted Date', key: 'postedDate' },
+            { label: 'Applicants', key: 'applicants' },
+            { label: 'Status', key: 'status' }
+        ];
+
+        const csvData = filteredJobs.map(job => ({
+            title: job.title,
+            company: job.company,
+            location: job.location,
+            salaryRange: `${job.salaryMin} - ${job.salaryMax}`,
+            postedDate: job.jobPosted ? job.jobPosted.toLocaleDateString('en-US') : 'N/A',
+            applicants: applicantCounts[job.id] || 0,
+            status: job.isOpen ? 'Open' : 'Closed'
+        }));
+
+        return { headers, data: csvData };
+    };
+
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (isDeleteConfirmOpen) return;
@@ -342,7 +368,6 @@ const Jobs = () => {
             searchInputRef.current.focus();
         }
     };
-
 
     if (isLoading) {
         return (
@@ -407,10 +432,18 @@ const Jobs = () => {
                             </div>
                             <button
                                 onClick={handleExportPDF}
-                                className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                                className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
                             >
-                                <FaRegFilePdf /> Export PDF
+                                <FaRegFilePdf className="text-red-600" /> Export PDF
                             </button>
+                            <CSVLink
+                                data={prepareCSVData().data}
+                                headers={prepareCSVData().headers}
+                                filename={`jobs-report-${new Date().toISOString().slice(0, 10)}.csv`}
+                                className="bg-white text-gray-700 border border-gray-300  hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                            >
+                                <FaFileCsv className="text-green-600" /> Export CSV
+                            </CSVLink>
                         </div>
                     </div>
                 </div>

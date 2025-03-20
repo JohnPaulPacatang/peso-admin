@@ -7,7 +7,8 @@ import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
-import { FaRegFilePdf } from "react-icons/fa6";
+import { FaRegFilePdf, FaFileCsv } from "react-icons/fa6";
+import { CSVLink } from 'react-csv';
 import EditAnnouncementModal from "./EditAnnouncementModal";
 
 const TableAnnouncements = () => {
@@ -246,6 +247,24 @@ const TableAnnouncements = () => {
         };
     };
 
+    const prepareCSVData = () => {
+        const headers = [
+            { label: 'Title', key: 'title' },
+            { label: 'Description', key: 'description' },
+            { label: 'Location', key: 'location' },
+            { label: 'Date', key: 'date' }
+        ];
+
+        const csvData = announcements.map(ann => ({
+            title: ann.title || 'N/A',
+            description: ann.description || 'N/A',
+            location: ann.location || 'N/A',
+            date: ann.date ? ann.date.toDate().toLocaleDateString('en-US') : 'N/A'
+        }));
+
+        return { headers, data: csvData };
+    };
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (isDeleteConfirmOpen) return;
@@ -311,9 +330,20 @@ const TableAnnouncements = () => {
                                 </button>
                             )}
                         </div>
-                        <button onClick={handleExportPDF} className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
-                            <FaRegFilePdf /> Export PDF
+                        <button
+                            onClick={handleExportPDF}
+                            className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                        >
+                            <FaRegFilePdf className="text-red-600" /> Export PDF
                         </button>
+                        <CSVLink
+                            data={prepareCSVData().data}
+                            headers={prepareCSVData().headers}
+                            filename={`announcement-report-${new Date().toISOString().slice(0, 10)}.csv`}
+                            className="bg-white text-gray-700 border border-gray-300  hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                        >
+                            <FaFileCsv className="text-green-600" /> Export CSV
+                        </CSVLink>
                     </div>
                 </div>
             </div>

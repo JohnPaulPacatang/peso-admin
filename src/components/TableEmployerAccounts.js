@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { CiSearch } from "react-icons/ci";
-import { FaRegFilePdf } from "react-icons/fa6";
+import { FaRegFilePdf, FaFileCsv } from "react-icons/fa6";
+import { CSVLink } from 'react-csv';
 import { MdOutlineAutoDelete } from "react-icons/md";
 import { db } from '../firebase';
 import { collection, getDocs, deleteDoc, doc, updateDoc, query, addDoc, orderBy } from 'firebase/firestore';
@@ -60,7 +61,6 @@ const ManageEmployerAccounts = () => {
         fetchEmployers();
     }, []);
 
-    // Handle search filtering client-side
     useEffect(() => {
         if (!initialLoadComplete.current) return;
 
@@ -74,8 +74,7 @@ const ManageEmployerAccounts = () => {
             }
 
             setIsSearching(true);
-
-            // Small delay to show loading state during typing
+     
             const searchTimeout = setTimeout(() => {
                 const filtered = allEmployersData.current.filter(employer =>
                     employer.companyName &&
@@ -220,8 +219,9 @@ const ManageEmployerAccounts = () => {
 
     const formatCreatedDate = (createdAt) => {
         if (!createdAt) return 'N/A';
-        const date = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        return createdAt.seconds ?
+            new Date(createdAt.seconds * 1000).toLocaleDateString('en-US') :
+            new Date(createdAt).toLocaleDateString('en-US');
     };
 
     const handleExportPDF = () => {
@@ -229,23 +229,23 @@ const ManageEmployerAccounts = () => {
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const marginX = 10;
-   
+
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(52, 73, 94); 
+        doc.setTextColor(52, 73, 94);
         doc.text('Employer Accounts Report', pageWidth / 2, 20, { align: 'center' });
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(100, 100, 100); 
+        doc.setTextColor(100, 100, 100);
         const formattedDate = new Date().toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
-        }); 
+        });
         doc.text(`Generated on ${formattedDate}`, pageWidth / 2, 28, { align: 'center' });
 
-        doc.setDrawColor(52, 73, 94); 
+        doc.setDrawColor(52, 73, 94);
         doc.setLineWidth(0.5);
         doc.line(marginX, 31, pageWidth - marginX, 31);
 
@@ -266,21 +266,21 @@ const ManageEmployerAccounts = () => {
             startY: 35,
             tableWidth: 'auto',
             styles: {
-                fontSize: 7, 
-                cellPadding: 3, 
+                fontSize: 7,
+                cellPadding: 3,
                 overflow: 'linebreak'
             },
             headStyles: {
                 fillColor: [52, 73, 94],
                 textColor: 255,
-                fontSize: 8, 
+                fontSize: 8,
                 fontStyle: 'bold'
             },
             alternateRowStyles: {
                 fillColor: [245, 245, 245]
             },
             margin: { left: marginX, right: marginX, top: 35 },
-            didDrawPage: () => { 
+            didDrawPage: () => {
                 doc.setFontSize(8);
                 doc.setTextColor(150, 150, 150);
                 doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
@@ -297,7 +297,33 @@ const ManageEmployerAccounts = () => {
             iframe.contentWindow.print();
         };
     };
-    
+
+    const prepareCSVData = () => {
+        const headers = [
+            { label: 'Company Name', key: 'companyName' },
+            { label: 'Email', key: 'email' },
+            { label: 'Contact Person', key: 'contactPerson' },
+            { label: 'Contact Email', key: 'contactEmail' },
+            { label: 'Address', key: 'address' },
+            { label: 'Created Date', key: 'createdAt' },
+            { label: 'Verified', key: 'verified' }
+        ];
+
+        const csvData = filteredAccounts.map(acc => ({
+            companyName: acc.companyName || 'N/A',
+            email: acc.email || 'N/A',
+            contactPerson: acc.contact_person_name || 'N/A',
+            contactEmail: acc.contact_person_email || 'N/A',
+            address: acc.company_address || 'N/A',
+            createdAt: formatCreatedDate(acc.createdAt),
+            verified: acc.verified ? 'Yes' : 'No'
+        }));
+
+        return { headers, data: csvData };
+    };
+
+
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -358,9 +384,20 @@ const ManageEmployerAccounts = () => {
                                 </button>
                             )}
                         </div>
-                        <button onClick={handleExportPDF} className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
-                            <FaRegFilePdf /> Export PDF
+                        <button
+                            onClick={handleExportPDF}
+                            className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                        >
+                            <FaRegFilePdf className="text-red-600" /> Export PDF
                         </button>
+                        <CSVLink
+                            data={prepareCSVData().data}
+                            headers={prepareCSVData().headers}
+                            filename={`employers-report-${new Date().toISOString().slice(0, 10)}.csv`}
+                            className="bg-white text-gray-700 border border-gray-300  hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                        >
+                            <FaFileCsv className="text-green-600" /> Export CSV
+                        </CSVLink>
                         <Link
                             to="/admin/deleted-employers"
                             className="bg-red-600 text-white hover:bg-red-700 py-2 px-4 rounded-lg text-sm transition duration-300 flex items-center gap-1"

@@ -7,7 +7,8 @@ import { BeatLoader } from "react-spinners";
 import { CiSearch } from "react-icons/ci";
 import { MdDeleteForever } from "react-icons/md";
 import { IoChevronBackOutline } from "react-icons/io5";
-import { FaRegFilePdf } from "react-icons/fa6";
+import { FaRegFilePdf, FaFileCsv } from "react-icons/fa6";
+import { CSVLink } from 'react-csv';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import toast from 'react-hot-toast';
@@ -73,7 +74,7 @@ const JobApplicants = () => {
         if (searchTerm.trim() !== '') {
             setSearchLoading(true);
         }
-     
+
         const searchTimeout = setTimeout(() => {
             if (searchTerm.trim() === '') {
                 setFilteredApplications(applications);
@@ -88,24 +89,22 @@ const JobApplicants = () => {
             );
 
             setFilteredApplications(filtered);
-            setCurrentPage(1); 
+            setCurrentPage(1);
             setSearchLoading(false);
-        }, 500); 
+        }, 500);
 
         return () => clearTimeout(searchTimeout);
     }, [searchTerm, applications]);
- 
+
     const clearSearch = () => {
         setSearchTerm('');
     };
 
-    // Pagination logic
     const indexOfLastApplication = currentPage * applicationsPerPage;
     const indexOfFirstApplication = indexOfLastApplication - applicationsPerPage;
     const currentApplications = filteredApplications.slice(indexOfFirstApplication, indexOfLastApplication);
     const totalPages = Math.ceil(filteredApplications.length / applicationsPerPage);
 
-    // Pagination function
     const paginate = (pageNumber) => {
         if (pageNumber > 0 && pageNumber <= totalPages) {
             setCurrentPage(pageNumber);
@@ -183,7 +182,27 @@ const JobApplicants = () => {
             iframe.contentWindow.print();
         };
     };
-  
+
+    const prepareCSVData = () => {
+        const headers = [
+            { label: 'Name', key: 'applicantName' },
+            { label: 'Email', key: 'applicantEmail' },
+            { label: 'Contact', key: 'applicantContact' },
+            { label: 'Address', key: 'applicantAddress' },
+            { label: 'Application Date', key: 'timestamp' }
+        ];
+
+        const csvData = filteredApplications.map(app => ({
+            applicantName: app.applicantName || 'N/A',
+            applicantEmail: app.applicantEmail || 'N/A',
+            applicantContact: app.applicantContact || 'N/A',
+            applicantAddress: app.applicantAddress || 'N/A',
+            timestamp: app.timestamp ? format(app.timestamp, 'MMM dd, yyyy') : 'N/A'
+        }));
+
+        return { headers, data: csvData };
+    };
+
     const openDeleteConfirm = (application) => {
         setApplicationToDelete(application);
         setIsDeleteConfirmOpen(true);
@@ -263,9 +282,19 @@ const JobApplicants = () => {
                         </div>
                         <button
                             onClick={handleExportPDF}
-                            className="bg-green-500 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
-                            <FaRegFilePdf /> Export PDF
+                            className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                        >
+                            <FaRegFilePdf className="text-red-600" /> Export PDF
                         </button>
+                        <CSVLink
+                            data={prepareCSVData().data}
+                            headers={prepareCSVData().headers}
+                            filename={`applicants-report-${new Date().toISOString().slice(0, 10)}.csv`}
+                            className="bg-white text-gray-700 border border-gray-300  hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                        >
+                            <FaFileCsv className="text-green-600" /> Export CSV
+                        </CSVLink>
+
                         <button
                             onClick={() => navigate(-1)}
                             className="bg-blue-500 text-white hover:bg-blue-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">

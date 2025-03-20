@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { CiSearch } from "react-icons/ci";
-import { FaRegFilePdf } from "react-icons/fa6";
+import { FaRegFilePdf, FaFileCsv } from "react-icons/fa6";
+import { CSVLink } from 'react-csv';
 import { MdOutlineAutoDelete } from "react-icons/md";
 import { db } from '../firebase';
 import { collection, getDocs, deleteDoc, doc, updateDoc, addDoc } from 'firebase/firestore';
@@ -60,39 +61,32 @@ const TableUsers = () => {
     fetchAllUsers();
   }, []);
 
-  // Handle search with debouncing and smooth transitions
   useEffect(() => {
-    // Show loader immediately when typing starts
     if (searchTerm.trim() !== '') {
       setIsSearching(true);
     }
 
-    // Clear previous timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // Set new timeout for debouncing
     searchTimeoutRef.current = setTimeout(() => {
       if (searchTerm.trim() === '') {
-        // If search is cleared, show all users
         setFilteredUsers(users);
         setIsSearching(false);
       } else {
-        // Filter users client-side
         const lowercaseSearchTerm = searchTerm.trim().toLowerCase();
         const filtered = users.filter(user =>
           user.name && user.name.toLowerCase().includes(lowercaseSearchTerm)
         );
 
-        // Update filtered results
         setFilteredUsers(filtered);
         setIsSearching(false);
       }
 
-      // Reset to first page when search results change
+
       setCurrentPage(1);
-    }, 500); // 500ms debounce delay
+    }, 500);
 
     return () => {
       if (searchTimeoutRef.current) {
@@ -293,32 +287,37 @@ const TableUsers = () => {
 
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
-    
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.target = '_blank';
-    link.download = 'User_Profiles_Report.pdf';
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    iframe.src = pdfUrl;
+    iframe.onload = () => {
+      iframe.contentWindow.print();
+    };
+  };
 
-    const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>User Profiles Report</title>
-      <style>
-        body, html { margin: 0; padding: 0; height: 100%; }
-        iframe { width: 100%; height: 100%; border: none; }
-      </style>
-    </head>
-    <body>
-      <iframe src="${pdfUrl}" type="application/pdf"></iframe>
-    </body>
-    </html>
-  `;
+  const prepareCSVData = () => {
+    const headers = [
+      { label: 'Name', key: 'name' },
+      { label: 'Email', key: 'email' },
+      { label: 'Contact Number', key: 'contactNumber' },
+      { label: 'Address', key: 'address' },
+      { label: 'Verified', key: 'isVerified' },
+      { label: 'Created At', key: 'createdAt' }
+    ];
 
-    const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
-    const htmlUrl = URL.createObjectURL(htmlBlob);
+    const csvData = filteredUsers.map(user => ({
+      name: user.name || 'N/A',
+      email: user.email || 'N/A',
+      contactNumber: user.contactNumber || 'N/A',
+      address: user.address || 'N/A',
+      isVerified: user.isVerified ? 'Yes' : 'No',
+      createdAt: user.createdAt ?
+        new Date(user.createdAt.seconds * 1000).toLocaleDateString('en-US') :
+        'N/A'
+    }));
 
-    window.open(htmlUrl, '_blank');
+    return { headers, data: csvData };
   };
 
   useEffect(() => {
@@ -396,9 +395,20 @@ const TableUsers = () => {
                 </button>
               )}
             </div>
-            <button onClick={handleExportPDF} className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
-              <FaRegFilePdf /> Export PDF
+            <button
+              onClick={handleExportPDF}
+              className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+            >
+              <FaRegFilePdf className="text-red-600" /> Export PDF
             </button>
+            <CSVLink
+              data={prepareCSVData().data}
+              headers={prepareCSVData().headers}
+              filename={`users-report-${new Date().toISOString().slice(0, 10)}.csv`}
+              className="bg-white text-gray-700 border border-gray-300  hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+            >
+              <FaFileCsv className="text-green-600" /> Export CSV
+            </CSVLink>
             <Link
               to="/admin/deleted-users"
               className="bg-red-600 text-white hover:bg-red-700 py-2 px-4 rounded-lg text-sm transition duration-300 flex items-center gap-1"

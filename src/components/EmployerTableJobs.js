@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AiOutlineEllipsis, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
 import { CiSearch } from "react-icons/ci";
-import { FaRegFilePdf } from "react-icons/fa6";
+import { FaRegFilePdf, FaFileCsv } from "react-icons/fa6";
+import { CSVLink } from 'react-csv';
 import { collection, getDocs, doc, deleteDoc, updateDoc, query, where, } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-hot-toast";
@@ -41,7 +42,6 @@ const EmployerTableJobs = () => {
         }
     };
 
-    // Fetch applicant counts whenever jobs change
     useEffect(() => {
         const fetchApplicantCounts = async () => {
             if (jobs.length === 0) return;
@@ -124,31 +124,24 @@ const EmployerTableJobs = () => {
 
         fetchInitialData();
     }, []);
-
-    // Function to apply filters (search + sort) without fetching from database again
+  
     const applyFilters = (jobsData, sortValue, search) => {
-        // Start with the current jobs data
         let result = [...jobsData];
-
-        // Apply search filter if search term exists
+  
         if (search.trim() !== "") {
             const lowercaseSearchTerm = search.trim().toLowerCase();
             result = result.filter(job =>
                 job.title && job.title.toLowerCase().includes(lowercaseSearchTerm)
             );
         }
-
-        // Apply sort filter
+     
         if (sortValue === 'open') {
             result = result.filter(job => job.isOpen === true);
         } else if (sortValue === 'closed') {
             result = result.filter(job => job.isOpen === false);
         }
 
-        // Update filtered jobs
         setFilteredJobs(result);
-
-        // Reset to first page when filters change
         setCurrentPage(1);
     };
 
@@ -318,11 +311,31 @@ const EmployerTableJobs = () => {
         iframe.src = pdfUrl;
         iframe.onload = () => {
             iframe.contentWindow.print();
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                URL.revokeObjectURL(pdfUrl);
-            }, 1000);
         };
+    };
+
+    const prepareCSVData = () => {
+        const headers = [
+            { label: 'Title', key: 'title' },
+            { label: 'Company', key: 'company' },
+            { label: 'Location', key: 'location' },
+            { label: 'Salary Range', key: 'salaryRange' },
+            { label: 'Posted Date', key: 'postedDate' },
+            { label: 'Applicants', key: 'applicants' },
+            { label: 'Status', key: 'status' }
+        ];
+
+        const csvData = filteredJobs.map(job => ({
+            title: job.title || 'N/A',
+            company: job.company || 'N/A',
+            location: job.location || 'N/A',
+            salaryRange: `${job.salaryMin || 'N/A'} - ${job.salaryMax || 'N/A'}`,
+            postedDate: job.jobPosted ? job.jobPosted.toLocaleDateString('en-US') : 'N/A',
+            applicants: applicantCounts[job.id] || 0,
+            status: job.isOpen ? 'Open' : 'Closed'
+        }));
+
+        return { headers, data: csvData };
     };
 
     useEffect(() => {
@@ -346,7 +359,6 @@ const EmployerTableJobs = () => {
 
     const clearSearch = () => {
         setSearchTerm('');
-        // Keep focus on the search input after clearing
         if (searchInputRef.current) {
             searchInputRef.current.focus();
         }
@@ -401,10 +413,19 @@ const EmployerTableJobs = () => {
                         </div>
                         <button
                             onClick={handleExportPDF}
-                            className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                            className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
                         >
-                            <FaRegFilePdf /> Export PDF
+                            <FaRegFilePdf className="text-red-600" /> Export PDF
                         </button>
+                        <CSVLink
+                            data={prepareCSVData().data}
+                            headers={prepareCSVData().headers}
+                            filename={`jobs-report-${new Date().toISOString().slice(0, 10)}.csv`}
+                            className="bg-white text-gray-700 border border-gray-300  hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                        >
+                            <FaFileCsv className="text-green-600" /> Export CSV
+                        </CSVLink>
+
                     </div>
                 </div>
             </div>

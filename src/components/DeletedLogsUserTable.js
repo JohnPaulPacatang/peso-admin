@@ -4,7 +4,8 @@ import { db } from '../firebase';
 import { BeatLoader } from "react-spinners";
 import { CiSearch } from "react-icons/ci";
 import { IoChevronBackOutline } from "react-icons/io5";
-import { FaRegFilePdf } from "react-icons/fa6";
+import { FaRegFilePdf, FaFileCsv } from "react-icons/fa6";
+import { CSVLink } from 'react-csv';
 import { Link } from "react-router-dom";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -51,13 +52,11 @@ const DeletedLogsUsersTable = () => {
         fetchAllDeletedLogs();
     }, []);
 
-    // Handle search with client-side filtering by name only
     useEffect(() => {
         const performSearch = async () => {
             setIsSearching(true);
 
             try {
-                // Simulate a small delay to show the loading state
                 await new Promise(resolve => setTimeout(resolve, 300));
 
                 if (searchTerm.trim() === '') {
@@ -65,12 +64,10 @@ const DeletedLogsUsersTable = () => {
                 } else {
                     const lowercaseSearch = searchTerm.toLowerCase();
                     const filtered = allDeletedUsers.filter(user => {
-                        // Case insensitive search on name only
                         return user.name && user.name.toLowerCase().includes(lowercaseSearch);
                     });
                     setFilteredUsers(filtered);
                 }
-                // Reset to first page whenever search changes
                 setCurrentPage(1);
             } finally {
                 setIsSearching(false);
@@ -176,6 +173,26 @@ const DeletedLogsUsersTable = () => {
         };
     };
 
+    const prepareCSVData = () => {
+        const headers = [
+            { label: 'User ID', key: 'userId' },
+            { label: 'Name', key: 'name' },
+            { label: 'Email', key: 'email' },
+            { label: 'Deleted At', key: 'deletedAt' }
+        ];
+
+        const csvData = filteredUsers.map(log => ({
+            userId: log.userId || 'N/A',
+            name: log.name || 'N/A',
+            email: log.email || 'N/A',
+            deletedAt: log.deletedAt ?
+                new Date(log.deletedAt.seconds * 1000).toLocaleDateString('en-US') :
+                'N/A'
+        }));
+
+        return { headers, data: csvData };
+    };
+
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center h-screen">
@@ -209,9 +226,21 @@ const DeletedLogsUsersTable = () => {
                                 </button>
                             )}
                         </div>
-                        <button onClick={handleExportPDF} className="bg-green-600 text-white hover:bg-green-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
-                            <FaRegFilePdf /> Export PDF
+                        <button
+                            onClick={handleExportPDF}
+                            className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                        >
+                            <FaRegFilePdf className="text-red-600" /> Export PDF
                         </button>
+                        <CSVLink
+                            data={prepareCSVData().data}
+                            headers={prepareCSVData().headers}
+                            filename={`deleted-users-report-${new Date().toISOString().slice(0, 10)}.csv`}
+                            className="bg-white text-gray-700 border border-gray-300  hover:bg-gray-100 py-2 px-4 rounded-lg text-sm flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-start"
+                        >
+                            <FaFileCsv className="text-green-600" /> Export CSV
+                        </CSVLink>
+
                         <Link to="/admin/manage-employers" className="bg-blue-600 text-white hover:bg-blue-700 py-2 px-4 rounded-lg text-sm flex items-center gap-1">
                             <IoChevronBackOutline /> Back to Employers
                         </Link>
