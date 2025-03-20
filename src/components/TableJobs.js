@@ -314,10 +314,6 @@ const Jobs = () => {
         iframe.src = pdfUrl;
         iframe.onload = () => {
             iframe.contentWindow.print();
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                URL.revokeObjectURL(pdfUrl);
-            }, 1000);
         };
     };
 

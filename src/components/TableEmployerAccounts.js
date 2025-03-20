@@ -13,7 +13,7 @@ import 'jspdf-autotable';
 
 const ManageEmployerAccounts = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [accounts, setAccounts] = useState([]);
+    const [, setAccounts] = useState([]);
     const [filteredAccounts, setFilteredAccounts] = useState([]);
     const [selectedAccount, setSelectedAccount] = useState(null);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -295,10 +295,6 @@ const ManageEmployerAccounts = () => {
         iframe.src = pdfUrl;
         iframe.onload = () => {
             iframe.contentWindow.print();
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                URL.revokeObjectURL(pdfUrl);
-            }, 1000);
         };
     };
     

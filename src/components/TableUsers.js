@@ -293,17 +293,32 @@ const TableUsers = () => {
 
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-    iframe.src = pdfUrl;
-    iframe.onload = () => {
-      iframe.contentWindow.print();
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        URL.revokeObjectURL(pdfUrl);
-      }, 1000);
-    };
+    
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.target = '_blank';
+    link.download = 'User_Profiles_Report.pdf';
+
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>User Profiles Report</title>
+      <style>
+        body, html { margin: 0; padding: 0; height: 100%; }
+        iframe { width: 100%; height: 100%; border: none; }
+      </style>
+    </head>
+    <body>
+      <iframe src="${pdfUrl}" type="application/pdf"></iframe>
+    </body>
+    </html>
+  `;
+
+    const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+    const htmlUrl = URL.createObjectURL(htmlBlob);
+
+    window.open(htmlUrl, '_blank');
   };
 
   useEffect(() => {

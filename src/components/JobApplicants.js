@@ -181,14 +181,9 @@ const JobApplicants = () => {
         iframe.src = pdfUrl;
         iframe.onload = () => {
             iframe.contentWindow.print();
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                URL.revokeObjectURL(pdfUrl);
-            }, 1000);
         };
     };
-
-    // Delete functions
+  
     const openDeleteConfirm = (application) => {
         setApplicationToDelete(application);
         setIsDeleteConfirmOpen(true);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineEllipsis } from "react-icons/ai";
 import { CiSearch } from "react-icons/ci";
-import { collection, getDocs, doc, deleteDoc, updateDoc, query, where } from "firebase/firestore";
+import { collection, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-hot-toast";
 import { BeatLoader } from "react-spinners";
@@ -243,10 +243,6 @@ const TableAnnouncements = () => {
         iframe.src = pdfUrl;
         iframe.onload = () => {
             iframe.contentWindow.print();
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                URL.revokeObjectURL(pdfUrl);
-            }, 1000);
         };
     };
 
