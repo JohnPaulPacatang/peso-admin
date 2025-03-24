@@ -30,14 +30,14 @@ const ManageEmployerAccounts = () => {
     const initialLoadComplete = useRef(false);
     const allEmployersData = useRef([]);
 
-    // Initial data fetch
+    // Initial data fetch employer
     useEffect(() => {
         const fetchEmployers = async () => {
             try {
                 setIsLoading(true);
                 const employersQuery = query(
                     collection(db, "employers"),
-                    orderBy("createdAt", "desc")
+                    orderBy("createdAt", "desc") //latest
                 );
 
                 const querySnapshot = await getDocs(employersQuery);
@@ -61,6 +61,8 @@ const ManageEmployerAccounts = () => {
         fetchEmployers();
     }, []);
 
+
+    //search
     useEffect(() => {
         if (!initialLoadComplete.current) return;
 
@@ -134,6 +136,7 @@ const ManageEmployerAccounts = () => {
                     accType: "employer"
                 };
 
+                //punta sa deleted logs
                 await addDoc(collection(db, "deleted_logs"), employerData);
 
                 // Then delete the employer from employers collection
@@ -174,6 +177,7 @@ const ManageEmployerAccounts = () => {
         }));
     };
 
+    //edit
     const handleSubmitEdit = async (e) => {
         e.preventDefault();
 
@@ -224,6 +228,7 @@ const ManageEmployerAccounts = () => {
             new Date(createdAt).toLocaleDateString('en-US');
     };
 
+    //export pwede print
     const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -298,6 +303,8 @@ const ManageEmployerAccounts = () => {
         };
     };
 
+
+    //export to excecl
     const prepareCSVData = () => {
         const headers = [
             { label: 'Company Name', key: 'companyName' },
@@ -322,8 +329,6 @@ const ManageEmployerAccounts = () => {
         return { headers, data: csvData };
     };
 
-
-
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -343,7 +348,6 @@ const ManageEmployerAccounts = () => {
 
     const clearSearch = () => {
         setSearchTerm('');
-        // Focus on the search input after clearing
         if (searchInputRef.current) {
             searchInputRef.current.focus();
         }
@@ -360,6 +364,7 @@ const ManageEmployerAccounts = () => {
 
     return (
         <div className="py-10 px-4 sm:px-6 lg:px-10">
+            {/* Header */}
             <div className="max-w-8xl mx-auto py-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Manage Employers</h1>
@@ -408,6 +413,7 @@ const ManageEmployerAccounts = () => {
                 </div>
             </div>
 
+            {/* Lamesa */}
             <div className="max-w-8xl mx-auto pt-4">
                 <div className="shadow-md sm:rounded-lg bg-white">
                     <table className="min-w-full border-gray-200 rounded-lg">
@@ -539,6 +545,7 @@ const ManageEmployerAccounts = () => {
                         </tbody>
                     </table>
 
+                    {/* Pagination */}
                     <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
                         <div className="flex-1 flex items-center justify-between">
                             <div>

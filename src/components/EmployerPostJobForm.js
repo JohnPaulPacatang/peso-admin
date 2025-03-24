@@ -3,7 +3,6 @@ import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } f
 import { db } from "../firebase";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { CiInboxOut } from "react-icons/ci";
 import { ClipLoader } from "react-spinners";
 import { isProfileComplete } from "../utils/profileValidation";
 
@@ -19,12 +18,13 @@ function PostJobForm() {
   const [skills, setSkills] = useState("");
   const [experience, setExperience] = useState("");
   const [logo, setLogo] = useState(null);
-  const [recentLogos, setRecentLogos] = useState([]);
+  const [, setRecentLogos] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [isProfileIncomplete, setIsProfileIncomplete] = useState(true);
   const [, setProfileMessage] = useState("");
 
+
+  //taga check kung complete profile 
   useEffect(() => {
     const checkProfileCompletion = () => {
       const storedEmployer = JSON.parse(localStorage.getItem("employer"));
@@ -41,7 +41,8 @@ function PostJobForm() {
 
     checkProfileCompletion();
   }, []);
-
+  
+  //taga kuha ng name saka logo
   useEffect(() => {
     const storedEmployer = JSON.parse(localStorage.getItem("employer"));
     if (storedEmployer) {
@@ -50,7 +51,7 @@ function PostJobForm() {
     }
     fetchRecentLogos();
   }, []);
-
+  
   const fetchRecentLogos = async () => {
     try {
       const q = query(collection(db, "jobs"), orderBy("date_posted", "desc"), limit(5));
@@ -66,6 +67,7 @@ function PostJobForm() {
     }
   };
 
+  //pang save malamang
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -105,6 +107,7 @@ function PostJobForm() {
       const storedEmployer = JSON.parse(localStorage.getItem("employer"));
       const employerUid = storedEmployer?.uid || null;
 
+      //fetch ulet para lumabas sa lamesa
       await addDoc(collection(db, "jobs"), {
         employerUid,
         company,
@@ -356,65 +359,7 @@ function PostJobForm() {
         </form>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-70 z-50 transition-opacity duration-300">
-          <div className="bg-white w-[36rem] rounded-2xl p-8 shadow-lg relative">
-            <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">Select a Logo</h2>
-
-            {/* Recently Uploaded Logos Section */}
-            <div className="mb-24">
-              <h3 className="text-lg font-medium text-gray-700 mb-2">Recently Uploaded Logos</h3>
-              {recentLogos.length > 0 ? (
-                <div className="flex gap-4 overflow-x-auto py-2">
-                  {recentLogos.map((url, index) => (
-                    <img
-                      key={index}
-                      src={url}
-                      alt={`Recent logo ${index + 1}`}
-                      className="w-20 h-20 object-cover cursor-pointer border border-gray-300 rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-transform"
-                      onClick={() => {
-                        setLogo(url);
-                        setShowModal(false);
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">No recently uploaded logos found.</p>
-              )}
-            </div>
-
-            {/* Upload from Device Section */}
-            <div className="mb-6">
-              <h3 className="text-lg font-medium text-gray-700 mb-2">Upload from Device</h3>
-              <label
-                htmlFor="file-upload"
-                className="flex flex-col items-center justify-center w-full border border-dashed border-gray-300 rounded-md cursor-pointer hover:border-green-500 hover:bg-green-50 p-4 transition-all"
-              >
-                <CiInboxOut className="w-10 h-10 text-gray-400 mb-2" />
-                <span className="text-sm text-gray-500">Click to upload a logo</span>
-                <input
-                  id="file-upload"
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => {
-                    setLogo(e.target.files[0]);
-                    setShowModal(false);
-                  }}
-                />
-              </label>
-            </div>
-
-            {/* Cancel Button */}
-            <button
-              className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-all"
-              onClick={() => setShowModal(false)}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+     
     </div>
   );
 }

@@ -22,14 +22,17 @@ const TableUsers = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const dropdownRef = useRef(null);
+
+  // sa pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(10);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
-  // Fetch all users initially
+  // Fetch all users 
   useEffect(() => {
     const fetchAllUsers = async () => {
       try {
@@ -61,6 +64,7 @@ const TableUsers = () => {
     fetchAllUsers();
   }, []);
 
+  //sa saeach
   useEffect(() => {
     if (searchTerm.trim() !== '') {
       setIsSearching(true);
@@ -137,8 +141,9 @@ const TableUsers = () => {
           deletedAt: new Date(),
           accType: "user"
         };
-
+        // punta deleted logs yung acc
         await addDoc(collection(db, "deleted_logs"), userData);
+        // tapos delete sa profiles
         await deleteDoc(doc(db, "profiles", userToDelete.id));
 
         // Update both users and filteredUsers states
@@ -178,6 +183,8 @@ const TableUsers = () => {
     }));
   };
 
+
+  //edit
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
 
@@ -223,6 +230,7 @@ const TableUsers = () => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
+  //export pdf or print
   const handleExportPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -296,6 +304,8 @@ const TableUsers = () => {
     };
   };
 
+
+  //export csv
   const prepareCSVData = () => {
     const headers = [
       { label: 'Name', key: 'name' },
@@ -334,7 +344,6 @@ const TableUsers = () => {
   }, []);
 
   useEffect(() => {
-    // Focus the search input after it's rendered
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
@@ -372,6 +381,8 @@ const TableUsers = () => {
 
   return (
     <div className="py-10 px-4 sm:px-6 lg:px-10">
+
+      {/* Header */}
       <div className="max-w-8xl mx-auto py-4">
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
           <h1 className="text-2xl sm:text-2xl font-bold text-gray-800">Manage Users</h1>
@@ -419,6 +430,7 @@ const TableUsers = () => {
         </div>
       </div>
 
+      {/* Lameeeeeeeeesa */}
       <div className="max-w-8xl mx-auto pt-4">
         <div className="shadow-md sm:rounded-lg bg-white">
           <table className="min-w-full border-gray-200 rounded-lg">
@@ -525,6 +537,7 @@ const TableUsers = () => {
             </tbody>
           </table>
 
+          {/* Pagination */}
           <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
             <div className="flex-1 flex items-center justify-between">
               <div>

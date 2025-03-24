@@ -45,6 +45,7 @@ const Jobs = () => {
         }
     };
 
+    //fetch jobs
     useEffect(() => {
         const fetchApplicantCounts = async () => {
             if (jobs.length === 0) return;
@@ -70,6 +71,7 @@ const Jobs = () => {
         fetchApplicantCounts();
     }, [jobs]);
 
+    //closed open
     useEffect(() => {
         const fetchJobs = async (sortValue) => {
             setIsLoading(true);
@@ -123,6 +125,7 @@ const Jobs = () => {
         fetchJobs(sortOption);
     }, [sortOption]);
 
+    //search har
     const filterJobs = useCallback(() => {
         let result = [...jobs];
         if (searchTerm.trim() !== '') {
@@ -139,6 +142,7 @@ const Jobs = () => {
         setFilteredJobs(result);
         setCurrentPage(1);
     }, [jobs, searchTerm, selectedCompany]);
+
 
     useEffect(() => {
         setIsSearching(true);
@@ -158,6 +162,7 @@ const Jobs = () => {
         setIsDeleteConfirmOpen(true);
     };
 
+    //delete
     const confirmDelete = async () => {
         const deletePromise = new Promise(async (resolve, reject) => {
             try {
@@ -191,6 +196,7 @@ const Jobs = () => {
         setSelectedJob(selectedJob && selectedJob.id === job.id ? null : job);
     };
 
+    //papunta edit page ng jobs
     const handleUpdate = (job) => {
         navigate(`/admin/jobs/edit/${job.id}`, {
             state: {
@@ -212,6 +218,7 @@ const Jobs = () => {
         });
     };
 
+    //taga open saka close
     const handleToggleJobStatus = async (job) => {
         const togglePromise = new Promise(async (resolve, reject) => {
             try {
@@ -243,6 +250,8 @@ const Jobs = () => {
         });
     };
 
+
+    //export pdf pwedee print
     const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -318,6 +327,7 @@ const Jobs = () => {
         };
     };
 
+    //export to excel
     const prepareCSVData = () => {
         const headers = [
             { label: 'Title', key: 'title' },
@@ -610,6 +620,7 @@ const Jobs = () => {
                 </div>
             </div>
 
+            {/* Modal for dlete */}
             {isDeleteConfirmOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-200">
                     <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-200 scale-100">

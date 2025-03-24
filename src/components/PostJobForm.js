@@ -27,6 +27,8 @@ function PostJobForm() {
     fetchRecentLogos();
   }, []);
 
+
+  //recent
   const fetchRecentLogos = async () => {
     try {
       const q = query(collection(db, "jobs"), orderBy("date_posted", "desc"), limit(5));
@@ -57,6 +59,15 @@ function PostJobForm() {
     try {
       let logoUrl = logo;
       if (typeof logo !== "string") {
+        // Add file type validation before uploading
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(logo.type)) {
+          toast.error("Please upload an image file (JPEG, PNG, GIF)");
+          e.target.value = null; 
+          setLoading(false);
+          return;
+        }
+
         const formData = new FormData();
         formData.append("file", logo);
         formData.append("upload_preset", "peso-files-img");

@@ -25,7 +25,7 @@ const DeletedLogsUsersTable = () => {
             try {
                 const logsQuery = query(
                     collection(db, "deleted_logs"),
-                    where("accType", "==", "user")
+                    where("accType", "==", "user") //pili lng user
                 );
 
                 const querySnapshot = await getDocs(logsQuery);
@@ -52,6 +52,7 @@ const DeletedLogsUsersTable = () => {
         fetchAllDeletedLogs();
     }, []);
 
+    //Pang search
     useEffect(() => {
         const performSearch = async () => {
             setIsSearching(true);
@@ -102,6 +103,7 @@ const DeletedLogsUsersTable = () => {
         }
     };
 
+    //Export moto print
     const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -172,7 +174,8 @@ const DeletedLogsUsersTable = () => {
             iframe.contentWindow.print();
         };
     };
-
+     
+    //Export mo excel
     const prepareCSVData = () => {
         const headers = [
             { label: 'User ID', key: 'userId' },
@@ -193,6 +196,7 @@ const DeletedLogsUsersTable = () => {
         return { headers, data: csvData };
     };
 
+    //loaders
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center h-screen">
@@ -204,6 +208,8 @@ const DeletedLogsUsersTable = () => {
 
     return (
         <div className="py-10 px-4 sm:px-6 lg:px-10">
+
+            {/* Taas ng table pang sort */}
             <div className="max-w-8xl mx-auto py-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                     <h1 className="text-2xl sm:text-2xl font-bold text-gray-800">Deleted User Logs</h1>
@@ -248,6 +254,7 @@ const DeletedLogsUsersTable = () => {
                 </div>
             </div>
 
+            {/* Lamesa */}
             <div className="max-w-8xl mx-auto pt-4">
                 <div className="shadow-md sm:rounded-lg bg-white">
                     <table className="min-w-full border-gray-200 rounded-lg">
@@ -300,6 +307,7 @@ const DeletedLogsUsersTable = () => {
                         </tbody>
                     </table>
 
+                    {/* Pagination */}
                     <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
                         <div className="flex-1 flex items-center justify-between">
                             <div>

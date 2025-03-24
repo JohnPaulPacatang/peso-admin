@@ -25,7 +25,8 @@ const JobApplicants = () => {
     const [applicationsPerPage] = useState(15);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const [applicationToDelete, setApplicationToDelete] = useState(null);
-
+    
+    //fetch ng table sa applicant per jobs
     useEffect(() => {
         const fetchApplications = async () => {
             setLoading(true);
@@ -51,6 +52,7 @@ const JobApplicants = () => {
                     };
                 });
 
+                //latest latest
                 const sortedApplications = fetchedApplications.sort((a, b) =>
                     b.timestamp - a.timestamp
                 );
@@ -70,6 +72,8 @@ const JobApplicants = () => {
         }
     }, [jobId]);
 
+
+    //search bar
     useEffect(() => {
         if (searchTerm.trim() !== '') {
             setSearchLoading(true);
@@ -100,6 +104,7 @@ const JobApplicants = () => {
         setSearchTerm('');
     };
 
+    //pagination
     const indexOfLastApplication = currentPage * applicationsPerPage;
     const indexOfFirstApplication = indexOfLastApplication - applicationsPerPage;
     const currentApplications = filteredApplications.slice(indexOfFirstApplication, indexOfLastApplication);
@@ -111,6 +116,8 @@ const JobApplicants = () => {
         }
     };
 
+
+    //export pwede print
     const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -183,6 +190,7 @@ const JobApplicants = () => {
         };
     };
 
+    //export csv pag ayaw pdf 
     const prepareCSVData = () => {
         const headers = [
             { label: 'Name', key: 'applicantName' },
@@ -258,6 +266,8 @@ const JobApplicants = () => {
     return (
         <div className="py-10 px-4 sm:px-6 lg:px-10">
             <div className="max-w-8xl mx-auto">
+
+                {/* Header mo */}
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Job Applicants</h1>
                     <div className="flex items-center space-x-4">
@@ -303,6 +313,7 @@ const JobApplicants = () => {
                     </div>
                 </div>
 
+                {/* Lamesa mo */}
                 <div className="bg-white shadow-md rounded-xl overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="min-w-full">

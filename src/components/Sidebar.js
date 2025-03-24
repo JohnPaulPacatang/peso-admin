@@ -13,7 +13,7 @@ import { PiUserGearThin } from "react-icons/pi";
 import { SiAwssecretsmanager } from "react-icons/si";
 import Profile from '../assets/peso-logo.webp';
 
-// Define navigation items to improve maintainability
+// Define navigation items 
 const navigationItems = [
   { path: '/admin/dashboard', icon: CiGrid41, label: 'Dashboard' },
   { path: '/admin/jobs', icon: CiViewList, label: 'My Jobs' },
@@ -30,6 +30,7 @@ const Sidebar = () => {
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  //active tab
   const isActive = (path) =>
     location.pathname === path ? 'bg-green-200 text-green-800' : 'hover:bg-green-100';
 

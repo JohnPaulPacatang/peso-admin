@@ -59,7 +59,7 @@ const TableAnnouncements = () => {
         fetchAnnouncements();
     }, []);
 
-    // Handle search filtering with debouncing
+    // Handle search filtering 
     useEffect(() => {
         const filterAnnouncements = () => {
             setIsSearching(true);
@@ -110,6 +110,8 @@ const TableAnnouncements = () => {
         setIsDeleteConfirmOpen(true);
     };
 
+
+    //delete
     const confirmDelete = async () => {
         const deletePromise = new Promise(async (resolve, reject) => {
             try {
@@ -150,6 +152,7 @@ const TableAnnouncements = () => {
         setSelectedAnnouncement(null);
     };
 
+    //edit update
     const handleUpdate = async (updatedAnnouncement) => {
         const updatePromise = new Promise(async (resolve, reject) => {
             try {
@@ -176,6 +179,8 @@ const TableAnnouncements = () => {
         });
     };
 
+
+    //export pwede print
     const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -247,6 +252,8 @@ const TableAnnouncements = () => {
         };
     };
 
+
+    //export mo excel
     const prepareCSVData = () => {
         const headers = [
             { label: 'Title', key: 'title' },
@@ -287,7 +294,6 @@ const TableAnnouncements = () => {
 
     const clearSearch = () => {
         setSearchTerm('');
-        // Focus back on the input
         if (searchInputRef.current) {
             searchInputRef.current.focus();
         }
@@ -430,7 +436,7 @@ const TableAnnouncements = () => {
                         </tbody>
                     </table>
 
-
+                    {/* pagination */}
                     <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
                         <div className="flex-1 flex items-center justify-between">
                             <div>

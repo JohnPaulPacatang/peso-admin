@@ -10,6 +10,8 @@ function PostAnnouncementForm() {
   const [location, setLocation] = useState("");
   const [loading, setLoading] = useState(false);
 
+
+  //pang post
   const handleSubmit = async (e) => {
     e.preventDefault();
 

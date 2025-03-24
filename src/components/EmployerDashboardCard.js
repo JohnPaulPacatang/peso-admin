@@ -18,6 +18,7 @@ function DashboardCard({ number, label, icon, className }) {
   );
 }
 
+//loaderrs buto
 function SkeletonCard() {
   return (
     <div className="bg-white p-6 m-1 sm:p-8 lg:p-10 rounded-3xl shadow-md flex items-center justify-between animate-pulse">

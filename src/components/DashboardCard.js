@@ -17,6 +17,8 @@ function DashboardCard({ number, label, icon, className }) {
   );
 }
 
+
+//Loaders skeleton
 function SkeletonCard() {
   return (
     <div className="bg-white p-6 m-1 sm:p-8 lg:p-10 rounded-3xl shadow-md flex items-center justify-between animate-pulse">
@@ -119,16 +121,17 @@ function Dashboard() {
         const applications = applicationsSnapshot.docs.map(doc => ({
           ...doc.data(),
           id: doc.id,
-          // Convert Firestore timestamp to JavaScript Date
           timestamp: doc.data().timestamp?.toDate() || new Date()
         }));
         
         setApplicationsCount(applications.length);
 
+        //tawag
         const usersQuery = query(collection(db, "profiles"));
         const usersSnapshot = await getDocs(usersQuery);
         setTotalUsersCount(usersSnapshot.size);
-
+            
+        //tawag
         const employersQuery = query(collection(db, "employers"));
         const employersSnapshot = await getDocs(employersQuery);
         setEmployerCount(employersSnapshot.size);
@@ -144,7 +147,6 @@ function Dashboard() {
         });
         
         setCompanyApplications(companyAppCounts);
-
         const sortedEmployers = Object.entries(companyAppCounts)
           .map(([company, appCount]) => ({ company, jobCount: appCount }))
           .sort((a, b) => b.jobCount - a.jobCount)

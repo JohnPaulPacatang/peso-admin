@@ -25,7 +25,7 @@ const DeletedLogsEmployersTable = () => {
             try {
                 const logsQuery = query(
                     collection(db, "deleted_logs"),
-                    where("accType", "==", "employer")
+                    where("accType", "==", "employer") //pili lng employer acc
                 );
 
                 const querySnapshot = await getDocs(logsQuery);
@@ -33,8 +33,7 @@ const DeletedLogsEmployersTable = () => {
                     id: doc.id,
                     ...doc.data(),
                 }));
-
-                // Sort by deletion date (most recent first)
+    
                 logsData.sort((a, b) => {
                     const aTime = a.deletedAt ? a.deletedAt.seconds : 0;
                     const bTime = b.deletedAt ? b.deletedAt.seconds : 0;
@@ -53,6 +52,7 @@ const DeletedLogsEmployersTable = () => {
         fetchDeletedLogs();
     }, []);
    
+    //Sa search bar
     useEffect(() => {
         const filterResults = () => {
             setIsSearching(true);
@@ -98,6 +98,7 @@ const DeletedLogsEmployersTable = () => {
         }
     };
 
+    //Export moto print
     const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -169,6 +170,7 @@ const DeletedLogsEmployersTable = () => {
         };
     };
 
+    //Export mo excel
     const prepareCSVData = () => {
         const headers = [
             { label: 'Employer ID', key: 'employerId' },
@@ -189,6 +191,7 @@ const DeletedLogsEmployersTable = () => {
         return { headers, data: csvData };
     };
 
+    //loaders
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center h-screen">
@@ -200,6 +203,8 @@ const DeletedLogsEmployersTable = () => {
 
     return (
         <div className="py-10 px-4 sm:px-6 lg:px-10">
+
+            {/* Taas ng table pang sort */}
             <div className="max-w-8xl mx-auto py-4">
                 <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                     <h1 className="text-2xl sm:text-2xl font-bold text-gray-800">Deleted Employer Logs</h1>
@@ -243,6 +248,7 @@ const DeletedLogsEmployersTable = () => {
                 </div>
             </div>
 
+            {/* Lamesa    */}
             <div className="max-w-8xl mx-auto pt-4">
                 <div className="shadow-md sm:rounded-lg bg-white">
                     <table className="min-w-full border-gray-200 rounded-lg">

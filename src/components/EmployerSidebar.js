@@ -11,7 +11,7 @@ import {
 import defaultProfile from '../assets/user.png';
 import Profile from '../assets/peso-logo.webp';
 
-// Define navigation items to improve maintainability
+// Define navigation items 
 const navigationItems = [
   { path: '/employer/dashboard', icon: CiGrid41, label: 'Dashboard' },
   { path: '/employer/profile', icon: CiUser, label: 'Profile' },
@@ -49,6 +49,8 @@ const EmployerSidebar = () => {
     };
   }, []);
 
+
+  //active tab
   const isActive = (path) =>
     location.pathname === path ? 'bg-green-200 text-green-800' : 'hover:bg-green-100';
 
@@ -182,7 +184,7 @@ const EmployerSidebar = () => {
           </nav>
 
           {/* Log Out Button */}
-          <div className="mt-auto pt-4 border-t text-sm border-gray-200">
+          <div className="mt-auto pt-4 text-sm ">
             <button
               onClick={handleLogout}
               className="flex items-center w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors duration-200"

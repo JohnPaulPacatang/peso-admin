@@ -52,6 +52,8 @@ const EditAnnouncementModal = ({ announcement, isOpen, onClose, onSave }) => {
                             />
                         </div>
                     </div>
+
+                    {/* Pindutan */}
                     <div className="flex gap-4 justify-center mt-8">
                         <button
                             onClick={onClose}

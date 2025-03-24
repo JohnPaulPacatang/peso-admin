@@ -22,6 +22,8 @@ function AdminEmployerLogin({ onLogin }) {
         return () => clearTimeout(timer);
     }, []);
 
+
+    //Login tapos tagaset ng user
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -34,6 +36,8 @@ function AdminEmployerLogin({ onLogin }) {
             const q = query(adminRef, where("email", "==", email));
             const querySnapshot = await getDocs(q);
 
+
+            //pag admin yung acc dito punta
             if (!querySnapshot.empty) {
                 const adminData = querySnapshot.docs[0].data();
                 if (adminData.password === password) {
@@ -53,6 +57,8 @@ function AdminEmployerLogin({ onLogin }) {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
+
+            //taga check kung nag verify kana
             if (!user.emailVerified) {
                 toast.error("Please verify your email.", { duration: 2000 });
                 setLoading(false);
@@ -62,6 +68,7 @@ function AdminEmployerLogin({ onLogin }) {
             const employerRef = doc(db, "employers", user.uid);
             const employerSnap = await getDoc(employerRef);
 
+            //taga check kung nagsignup kaba tapos login
             if (employerSnap.exists()) {
                 const employerData = employerSnap.data();
                 if (!employerData.verified) {

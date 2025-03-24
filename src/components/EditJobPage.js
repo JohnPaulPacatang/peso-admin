@@ -60,6 +60,8 @@ const EditJobPage = () => {
         fetchJob();
     }, [jobId, jobFromState, navigate]);
 
+
+    //Recent logo 
     useEffect(() => {
         const fetchRecentLogos = async () => {
             try {
@@ -83,6 +85,7 @@ const EditJobPage = () => {
         fetchRecentLogos();
     }, []);
 
+
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
@@ -92,6 +95,8 @@ const EditJobPage = () => {
         setShowLogoModal(false);
     };
 
+
+    //logo upload
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -111,6 +116,7 @@ const EditJobPage = () => {
             return logoFileName.includes(fileName) || fileName.includes(logoFileName);
         });
 
+        //bawal dups
         if (potentialDuplicate) {
             toast.error("This logo already exists. Please select from existing logos.", {
                 duration: 2000,
@@ -150,7 +156,7 @@ const EditJobPage = () => {
             setUploading(false);
         }
     };
-
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -197,9 +203,10 @@ const EditJobPage = () => {
         });
     };
 
+
+    //modal bay
     const LogoSelectorModal = () => {
         if (!showLogoModal) return null;
-
         return (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -237,6 +244,7 @@ const EditJobPage = () => {
     };
 
 
+    //loaders
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-screen">

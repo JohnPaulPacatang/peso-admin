@@ -20,6 +20,7 @@ function ForgotPassword() {
             const q = query(collection(db, "employers"), where("email", "==", email));
             const querySnapshot = await getDocs(q);
 
+            //taga check kung meron ka talagang acc 
             if (querySnapshot.empty) {
                 toast.error("No account found with this email. Please sign up first.", {
                     duration: 2000,

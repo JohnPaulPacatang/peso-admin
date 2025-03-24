@@ -127,7 +127,7 @@ const EmployerProfileCard = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Add file type validation
+        //file type validation
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']; 
         if (!allowedTypes.includes(file.type)) { 
             toast.error("Please upload an image file (JPEG, PNG, GIF)"); 

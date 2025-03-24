@@ -60,6 +60,8 @@ const EmployerEditJobPage = () => {
         fetchJob();
     }, [jobId, jobFromState, navigate]);
 
+
+    //recent logo
     useEffect(() => {
         const fetchRecentLogos = async () => {
             try {
@@ -151,6 +153,8 @@ const EmployerEditJobPage = () => {
         }
     };
 
+
+    //pang save
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -197,6 +201,7 @@ const EmployerEditJobPage = () => {
         });
     };
 
+    //modal ng mga logo
     const LogoSelectorModal = () => {
         if (!showLogoModal) return null;
 
@@ -236,7 +241,7 @@ const EmployerEditJobPage = () => {
         );
     };
 
-
+    //lodaers
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-screen">

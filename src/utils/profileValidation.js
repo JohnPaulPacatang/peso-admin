@@ -18,3 +18,5 @@ export const isProfileComplete = (employer) => {
         return value && value.toString().trim() !== '';
     });
 };
+
+// pang tingin to ng profile complete sa employer

@@ -20,6 +20,7 @@ function EmployerSignup() {
         setShowPassword(!showPassword);
     };
 
+    //check kung meron na katulad company saka email
     const checkIfEmployerExists = async (companyName, email) => {
         const q = query(
             collection(db, "employers"),
@@ -41,7 +42,8 @@ function EmployerSignup() {
         }
         return { exists: false };
     };
-
+    
+    //pang sign up
     const handleSignup = async (e) => {
         e.preventDefault();
         if (password.length < 6) {

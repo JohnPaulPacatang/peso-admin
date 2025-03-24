@@ -42,6 +42,7 @@ const EmployerTableJobs = () => {
         }
     };
 
+    //bilang ng application
     useEffect(() => {
         const fetchApplicantCounts = async () => {
             if (jobs.length === 0) return;
@@ -67,7 +68,7 @@ const EmployerTableJobs = () => {
         fetchApplicantCounts();
     }, [jobs]);
 
-    // Initial data loading
+    //fetch jobs
     useEffect(() => {
         const fetchInitialData = async () => {
             setIsLoading(true);
@@ -79,8 +80,6 @@ const EmployerTableJobs = () => {
                 }
 
                 const { uid: employerUid, companyName } = employerData;
-
-                // Get all jobs for the employer
                 const jobsQuery = collection(db, 'jobs');
                 const querySnapshot = await getDocs(jobsQuery);
 
@@ -123,8 +122,10 @@ const EmployerTableJobs = () => {
         };
 
         fetchInitialData();
-    }, []);
+    }, [sortOption]);
   
+
+    //search bar
     const applyFilters = (jobsData, sortValue, search) => {
         let result = [...jobsData];
   
@@ -161,6 +162,8 @@ const EmployerTableJobs = () => {
         setIsDeleteConfirmOpen(true);
     };
 
+
+    //delete 
     const confirmDelete = async () => {
         const deletePromise = new Promise(async (resolve, reject) => {
             try {
@@ -190,6 +193,7 @@ const EmployerTableJobs = () => {
         setSelectedJob(selectedJob && selectedJob.id === job.id ? null : job);
     };
 
+    //edit papunta sa component na edit
     const handleUpdate = (job) => {
         navigate(`/employer/jobs/edit/${job.id}`, {
             state: {
@@ -210,7 +214,9 @@ const EmployerTableJobs = () => {
             }
         });
     };
+    
 
+    //closed open
     const handleToggleJobStatus = async (job) => {
         const togglePromise = new Promise(async (resolve, reject) => {
             try {
@@ -239,6 +245,8 @@ const EmployerTableJobs = () => {
         });
     };
 
+
+    //export pwede print
     const handleExportPDF = () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -314,6 +322,8 @@ const EmployerTableJobs = () => {
         };
     };
 
+
+    //pag maarte ka excel mo
     const prepareCSVData = () => {
         const headers = [
             { label: 'Title', key: 'title' },
@@ -337,7 +347,7 @@ const EmployerTableJobs = () => {
 
         return { headers, data: csvData };
     };
-
+    
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (isDeleteConfirmOpen) return;
@@ -590,6 +600,7 @@ const EmployerTableJobs = () => {
                 </div>
             </div>
 
+            {/* modal delete */}
             {isDeleteConfirmOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-opacity duration-200">
                     <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 transform transition-all duration-200 scale-100">
