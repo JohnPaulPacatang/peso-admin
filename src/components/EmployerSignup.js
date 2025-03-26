@@ -22,27 +22,27 @@ function EmployerSignup() {
 
     //check kung meron na katulad company saka email
     const checkIfEmployerExists = async (companyName, email) => {
-        const q = query(
-            collection(db, "employers"),
-            where("companyName", "==", companyName),
-        );
-        const q2 = query(
-            collection(db, "employers"),
-            where("email", "==", email),
-        );
+        try {
+            const employerRef = collection(db, "employers");
+            const [nameSnapshot, emailSnapshot] = await Promise.all([
+                getDocs(query(employerRef, where("companyName", "==", companyName))),
+                getDocs(query(employerRef, where("email", "==", email)))
+            ]);
+     
+            if (!nameSnapshot.empty) {
+                return { exists: true, field: "Company Name" };
+            }
+            if (!emailSnapshot.empty) {
+                return { exists: true, field: "Email Address" };
+            }
 
-        const nameSnapshot = await getDocs(q);
-        const emailSnapshot = await getDocs(q2);
-
-        if (!nameSnapshot.empty) {
-            return { exists: true, field: "Company Name" };
+            return { exists: false };
+        } catch (error) {
+            console.error("Error checking employer existence:", error);
+            return { exists: false, error: true };
         }
-        if (!emailSnapshot.empty) {
-            return { exists: true, field: "Email Address" };
-        }
-        return { exists: false };
     };
-    
+
     //pang sign up
     const handleSignup = async (e) => {
         e.preventDefault();
