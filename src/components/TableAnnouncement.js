@@ -363,7 +363,7 @@ const TableAnnouncements = () => {
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Title</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Description</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Location</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black">Posted Date</th>
+                                <th className="px-3 py-3 text-left text-sm font-semibold text-black text-center">Posted Date</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Actions</th>
                             </tr>
                         </thead>
@@ -404,7 +404,7 @@ const TableAnnouncements = () => {
                                         <td className="px-3 py-3 text-sm text-gray-700">
                                             {announcement.date && announcement.date.toDate().toLocaleDateString()}
                                         </td>
-                                        <td className="px-3 py-3 text-3xl text-gray-700 relative">
+                                        <td className="px-3 py-3 text-3xl text-gray-700 relative text-center">
                                             <button
                                                 className="text-gray-500 hover:text-blue-700 text-center"
                                                 onClick={() => handleActionClick(announcement)}>
@@ -413,7 +413,7 @@ const TableAnnouncements = () => {
                                             {isDropdownOpen && selectedAnnouncement && selectedAnnouncement.id === announcement.id && (
                                                 <div
                                                     ref={dropdownRef}
-                                                    className="absolute bg-white border shadow-md mt-2 top-10 rounded-md py-2 w-28 right-2 z-10"
+                                                    className="absolute bg-white border shadow-md mt-4 top-10 rounded-md py-2 w-28 right-[-20px] z-10"
                                                 >
                                                     <button
                                                         onClick={handleEdit}
