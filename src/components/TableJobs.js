@@ -461,7 +461,7 @@ const Jobs = () => {
 
             {/* Jobs Table */}
             <div className="max-w-8xl mx-auto pt-4">
-                <div className="shadow-md sm:rounded-lg bg-white overflow-hidden">
+                <div className="shadow-md sm:rounded-lg bg-white">
                     <table className="min-w-full border-gray-200 rounded-lg">
                         <thead>
                             <tr className="bg-gray-300">
