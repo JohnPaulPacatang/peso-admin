@@ -356,9 +356,9 @@ const JobApplicants = () => {
                                             <td className="px-4 py-3 text-sm text-gray-700">
                                                 {application.timestamp ? format(application.timestamp, 'MMM dd, yyyy') : 'N/A'}
                                             </td>
-                                            <td className="px-4 py-3 text-sm text-gray-700">
+                                            <td className="px-4 py-3 text-sm text-center text-gray-700">
                                                 <a href={application.resumeLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
-                                                    View Resume
+                                                    View
                                                 </a>
                                             </td>
                                             <td className="px-4 py-3 text-sm text-gray-700 text-center">
