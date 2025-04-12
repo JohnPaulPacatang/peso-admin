@@ -363,7 +363,7 @@ const TableAnnouncements = () => {
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tl-lg">Title</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Description</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black">Location</th>
-                                <th className="px-3 py-3 text-left text-sm font-semibold text-black text-center">Posted Date</th>
+                                <th className="px-3 py-3 text-sm font-semibold text-black text-center">Posted Date</th>
                                 <th className="px-3 py-3 text-left text-sm font-semibold text-black rounded-tr-lg">Actions</th>
                             </tr>
                         </thead>
