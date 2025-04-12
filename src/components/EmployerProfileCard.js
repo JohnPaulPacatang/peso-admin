@@ -29,7 +29,7 @@ const EmployerProfileCard = () => {
     const [isChanged, setIsChanged] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState({ companyLogo: null, businessPermit: null });
     const [previewUrls, setPreviewUrls] = useState({ companyLogo: "", businessPermit: "" });
-    
+
     // Add validation errors state
     const [validationErrors, setValidationErrors] = useState({});
 
@@ -127,12 +127,14 @@ const EmployerProfileCard = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        //file type validation
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']; 
-        if (!allowedTypes.includes(file.type)) { 
-            toast.error("Please upload an image file (JPEG, PNG, GIF)"); 
-            e.target.value = null; // Reset the file input
-            return; 
+        // File type validation - only apply to company logo
+        if (field === "companyLogo") {
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error("Please upload an image file (JPEG, PNG, GIF) for company logo");
+                e.target.value = null; // Reset the file input
+                return;
+            }
         }
 
         const currentFileUrl = employer[field];
@@ -187,7 +189,7 @@ const EmployerProfileCard = () => {
         const { name, value } = e.target;
         const newEmployer = { ...employer, [name]: value };
         setEmployer(newEmployer);
-        
+
         // Clear validation error when field is changed
         if (validationErrors[name]) {
             setValidationErrors({
@@ -195,7 +197,7 @@ const EmployerProfileCard = () => {
                 [name]: null
             });
         }
-        
+
         checkChanges(newEmployer);
     };
 
@@ -205,12 +207,12 @@ const EmployerProfileCard = () => {
 
     const validateForm = () => {
         const errors = {};
-        
+
         // Validate contact person email if not empty
         if (employer.contactPersonEmail && !validateEmail(employer.contactPersonEmail)) {
             errors.contactPersonEmail = "Please enter a valid email address";
         }
-        
+
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -221,7 +223,7 @@ const EmployerProfileCard = () => {
             toast.error("Please fix the validation errors before saving.");
             return;
         }
-        
+
         setIsSaving(true);
 
         const saveProfilePromise = new Promise(async (resolve, reject) => {
@@ -344,12 +346,12 @@ const EmployerProfileCard = () => {
                         </div>
                         <div>
                             <label className="block text-gray-600 mb-2 text-sm">Contact Person Email</label>
-                            <input 
-                                type="email" 
-                                name="contactPersonEmail" 
-                                value={employer.contactPersonEmail} 
-                                onChange={handleChange} 
-                                className={`w-full border ${validationErrors.contactPersonEmail ? 'border-red-500' : 'border-gray-300'} rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm`} 
+                            <input
+                                type="email"
+                                name="contactPersonEmail"
+                                value={employer.contactPersonEmail}
+                                onChange={handleChange}
+                                className={`w-full border ${validationErrors.contactPersonEmail ? 'border-red-500' : 'border-gray-300'} rounded-xl px-3 py-2 sm:px-4 sm:py-3 text-sm`}
                                 onBlur={() => {
                                     if (employer.contactPersonEmail && !validateEmail(employer.contactPersonEmail)) {
                                         setValidationErrors({
@@ -428,7 +430,7 @@ const EmployerProfileCard = () => {
                             <span>{employer.businessPermit || previewUrls.businessPermit ? "Change File" : "Upload Permit"}</span>
                             <input
                                 type="file"
-                                accept="image/*"
+                                accept="application/pdf"
                                 onChange={(e) => handleFileChange(e, "businessPermit", "permits")}
                                 className="hidden"
                                 disabled={isUploading.businessPermit}
