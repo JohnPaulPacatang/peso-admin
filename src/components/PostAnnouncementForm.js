@@ -65,7 +65,7 @@ function PostAnnouncementForm() {
               <input
                 type="text"
                 id="announcement-title"
-                placeholder="Ex: Sales Manager"
+                placeholder="Ex: Job Fair"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -78,7 +78,7 @@ function PostAnnouncementForm() {
               </label>
               <textarea
                 id="announcement-description"
-                placeholder="We are searching for an experienced Sales Manager to drive revenue growth."
+                placeholder="Join us at PESO for upcoming career opportunities and professional growth! Don’t miss your chance to connect with employers and explore new paths to success."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -93,7 +93,7 @@ function PostAnnouncementForm() {
               <input
                 type="text"
                 id="location"
-                placeholder="Ex: Pasay City, Metro Manila"
+                placeholder="Ex: Caloocan City"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-4 focus:outline-none focus:ring-2 focus:ring-green-500"
